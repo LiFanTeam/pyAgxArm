@@ -56,6 +56,10 @@
   - [Linear Motion — move_l()](#linear-motion--move_l)
   - [Arc Motion — move_c()](#arc-motion--move_c)
   - [Single Joint MIT Control — move_mit()](#single-joint-mit-control--move_mit)
+- [CPV Motion and Parameters](#cpv-motion-and-parameters)
+  - [CPV Command APIs](#cpv-command-apis)
+  - [CPV Parameter Read APIs](#cpv-parameter-read-apis)
+  - [CPV Parameter Write APIs](#cpv-parameter-write-apis)
 
 ---
 
@@ -1735,6 +1739,57 @@ for i in range(1, robot.joint_nums + 1):
 
 ---
 
+## CPV Motion and Parameters
+
+CPV mode provides direct joint **position / velocity command** and parameter read/write APIs.  
+Calling CPV APIs will internally switch to CPV motion mode when needed (`set_motion_mode(MOVE_CPV)`).
+
+### CPV Command APIs
+
+| API | Signature | Description |
+| --- | --- | --- |
+| `move_cpv_pos` | `move_cpv_pos(self, joint_index: Literal[1, 2, 3, 4, 5, 6, 7], pos: float) -> None` | Send CPV position command (rad). If outside joint limit, SDK clamps and logs warning. |
+| `move_cpv_vel` | `move_cpv_vel(self, joint_index: Literal[1, 2, 3, 4, 5, 6, 7], vel: float) -> None` | Send CPV velocity command (rad/s). |
+
+### CPV Parameter Read APIs
+
+All read APIs support `timeout` and `min_interval`, and return `float | None`.
+
+| API | Unit / Meaning |
+| --- | --- |
+| `get_cpv_pos(joint_index, timeout=1.0, min_interval=1.0)` | Joint position (rad) |
+| `get_cpv_vel(joint_index, timeout=1.0, min_interval=1.0)` | Joint velocity (rad/s) |
+| `get_cpv_acc(joint_index, timeout=1.0, min_interval=1.0)` | Acceleration (rad/s^2) |
+| `get_cpv_dcc(joint_index, timeout=1.0, min_interval=1.0)` | Deceleration (rad/s^2) |
+| `get_cpv_cv(joint_index, timeout=1.0, min_interval=1.0)` | Contour/profile velocity (rad/s) |
+| `get_cpv_pp(joint_index, timeout=1.0, min_interval=1.0)` | Position-loop proportional gain |
+| `get_cpv_kp(joint_index, timeout=1.0, min_interval=1.0)` | Velocity-loop proportional gain |
+| `get_cpv_ki(joint_index, timeout=1.0, min_interval=1.0)` | Velocity-loop integral gain |
+
+### CPV Parameter Write APIs
+
+Write APIs are **ACK + read-back verified** and return `bool`.
+
+| API | Description |
+| --- | --- |
+| `set_cpv_acc(joint_index, acc, timeout=1.0)` | Set CPV acceleration parameter |
+| `set_cpv_dcc(joint_index, dcc, timeout=1.0)` | Set CPV deceleration parameter |
+| `set_cpv_cv(joint_index, cv, timeout=1.0)` | Set CPV contour/profile velocity parameter |
+| `set_cpv_pp(joint_index, pp, timeout=1.0)` | Set CPV position-loop proportional gain |
+| `set_cpv_kp(joint_index, kp, timeout=1.0)` | Set CPV velocity-loop proportional gain |
+| `set_cpv_ki(joint_index, ki, timeout=1.0)` | Set CPV velocity-loop integral gain |
+
+**Quick Example:**
+
+```python
+ok = robot.set_cpv_acc(joint_index=1, acc=2.0)
+print("set_cpv_acc:", ok)
+print("cpv_acc =", robot.get_cpv_acc(joint_index=1))
+robot.move_cpv_vel(joint_index=1, vel=0.2)
+```
+
+---
+
 # Nero 机械臂 API 使用文档
 
 > 本文档描述 `pyAgxArm` SDK 为 Nero 系列机械臂（7-DOF）提供的 Python API。涵盖实例创建、状态读取、运动控制、参数配置等全部接口。
@@ -1793,6 +1848,10 @@ for i in range(1, robot.joint_nums + 1):
   - [直线运动 — move_l()](#直线运动--move_l)
   - [圆弧运动 — move_c()](#圆弧运动--move_c)
   - [单关节 MIT 控制 — move_mit()](#单关节-mit-控制--move_mit)
+- [CPV 运动与参数](#cpv-运动与参数)
+  - [CPV 指令接口](#cpv-指令接口)
+  - [CPV 参数读取接口](#cpv-参数读取接口)
+  - [CPV 参数写入接口](#cpv-参数写入接口)
 
 ---
 
@@ -3467,3 +3526,55 @@ for i in range(1, robot.joint_nums + 1):
         t_ff=0.0,
     )
 ```
+
+---
+
+## CPV 运动与参数
+
+CPV 模式提供了关节 **位置/速度指令** 与参数读写接口。  
+调用 CPV 接口时，SDK 会在需要时自动切换到 `MOVE_CPV` 运动模式。
+
+### CPV 指令接口
+
+| 接口 | 签名 | 说明 |
+| --- | --- | --- |
+| `move_cpv_pos` | `move_cpv_pos(self, joint_index: Literal[1, 2, 3, 4, 5, 6, 7], pos: float) -> None` | 下发 CPV 位置指令（rad）。若超出关节限位，SDK 会夹紧并输出告警日志。 |
+| `move_cpv_vel` | `move_cpv_vel(self, joint_index: Literal[1, 2, 3, 4, 5, 6, 7], vel: float) -> None` | 下发 CPV 速度指令（rad/s）。 |
+
+### CPV 参数读取接口
+
+所有读取接口都支持 `timeout` 与 `min_interval` 参数，返回 `float | None`。
+
+| 接口 | 单位/含义 |
+| --- | --- |
+| `get_cpv_pos(joint_index, timeout=1.0, min_interval=1.0)` | 关节位置（rad） |
+| `get_cpv_vel(joint_index, timeout=1.0, min_interval=1.0)` | 关节速度（rad/s） |
+| `get_cpv_acc(joint_index, timeout=1.0, min_interval=1.0)` | 加速度（rad/s^2） |
+| `get_cpv_dcc(joint_index, timeout=1.0, min_interval=1.0)` | 减速度（rad/s^2） |
+| `get_cpv_cv(joint_index, timeout=1.0, min_interval=1.0)` | 轮廓/轨迹速度（rad/s） |
+| `get_cpv_pp(joint_index, timeout=1.0, min_interval=1.0)` | 位置环比例增益 |
+| `get_cpv_kp(joint_index, timeout=1.0, min_interval=1.0)` | 速度环比例增益 |
+| `get_cpv_ki(joint_index, timeout=1.0, min_interval=1.0)` | 速度环积分增益 |
+
+### CPV 参数写入接口
+
+写接口为 **ACK + 读回校验**，返回 `bool`。
+
+| 接口 | 说明 |
+| --- | --- |
+| `set_cpv_acc(joint_index, acc, timeout=1.0)` | 设置 CPV 加速度参数 |
+| `set_cpv_dcc(joint_index, dcc, timeout=1.0)` | 设置 CPV 减速度参数 |
+| `set_cpv_cv(joint_index, cv, timeout=1.0)` | 设置 CPV 轮廓/轨迹速度参数 |
+| `set_cpv_pp(joint_index, pp, timeout=1.0)` | 设置 CPV 位置环比例增益 |
+| `set_cpv_kp(joint_index, kp, timeout=1.0)` | 设置 CPV 速度环比例增益 |
+| `set_cpv_ki(joint_index, ki, timeout=1.0)` | 设置 CPV 速度环积分增益 |
+
+**快速示例：**
+
+```python
+ok = robot.set_cpv_acc(joint_index=1, acc=2.0)
+print("set_cpv_acc:", ok)
+print("cpv_acc =", robot.get_cpv_acc(joint_index=1))
+robot.move_cpv_vel(joint_index=1, vel=0.2)
+```
+

@@ -37,7 +37,9 @@
   - [Forward Kinematics — fk()](#forward-kinematics--fk)
 - [SDK Config Related](#sdk-config-related)
   - [Set Auto Motion Mode Switching — set_auto_set_motion_mode_enabled()](#set-auto-motion-mode-switching--set_auto_set_motion_mode_enabled)
+  - [Get Auto Motion Mode Switching State — get_auto_set_motion_mode_enabled()](#get-auto-motion-mode-switching-state--get_auto_set_motion_mode_enabled)
   - [Set Joint Limits Enabled — set_joint_limits_enabled()](#set-joint-limits-enabled--set_joint_limits_enabled)
+  - [Get Joint Limits Enabled State — get_joint_limits_enabled()](#get-joint-limits-enabled-state--get_joint_limits_enabled)
 - [Leader-Follower Arm](#leader-follower-arm)
   - [Set Normal Mode — set_normal_mode()](#set-normal-mode--set_normal_mode)
   - [Set Leader Mode — set_leader_mode()](#set-leader-mode--set_leader_mode)
@@ -136,8 +138,6 @@ create_agx_arm_config(
 | Name | Type | Description |
 | --- | --- | --- |
 | `joint_limits` | `dict` | Custom joint limits (unit: rad). Defaults are assigned automatically; manually entered limits are not currently applied to actual control. See example below |
-| `auto_set_motion_mode` | `bool` | Whether the SDK should automatically switch the arm into the required motion mode before motion APIs are sent. Default `True`. Set to `False` if you want to manage motion mode switching explicitly in your own application logic. |
-| `enable_joint_limits` | `bool` | Whether to enable software joint-limit clamping in runtime motion APIs. Default `True`. Set to `False` to skip model `joint_limits` clamp (basic numeric range checks still apply). |
 | `channel` | `str` | CAN channel identifier. Default `"can0"`. The documented and verified combinations are: with `"agx_cando"` use device index strings such as `"0"`, `"1"`, `"2"`; with `"socketcan"` use Linux CAN netdev names such as `"can0"` or your renamed interface; with `"slcan"` use serial device paths such as `"/dev/ttyACM0"` on macOS (`Darwin`). |
 | `interface` | `str` | CAN interface type, default `"socketcan"`. The documented and verified values are `"socketcan"` on Linux, `"agx_cando"` on Windows with the Agilex CANDO backend, and `"slcan"` on macOS (`Darwin`). |
 | `bitrate` | `int` | CAN baud rate, default `1000000` (1 Mbps) |
@@ -184,8 +184,6 @@ Example return structure:
     }
 }
 ```
-
-> **Note:** `auto_set_motion_mode` is added to the top-level config only when you pass it explicitly.
 
 Verified interface/channel examples:
 
@@ -1079,6 +1077,32 @@ robot.move_j([0.0] * robot.joint_nums)
 
 ---
 
+### Get Auto Motion Mode Switching State — `get_auto_set_motion_mode_enabled()`
+
+**Description:** Get the current runtime state of automatic `set_motion_mode()` switching before `move_*` calls.
+
+**Default:** `True`
+
+**Function Definition:**
+
+```python
+get_auto_set_motion_mode_enabled(self) -> bool
+```
+
+**Return Value:** `bool`
+
+- `True`: auto-switching is enabled.
+- `False`: auto-switching is disabled.
+
+**Usage Example:**
+
+```python
+enabled = robot.get_auto_set_motion_mode_enabled()
+print("auto motion mode switching:", enabled)
+```
+
+---
+
 ### Set Joint Limits Enabled — `set_joint_limits_enabled()`
 
 **Description:** Enable or disable software joint limits at runtime.
@@ -1104,6 +1128,32 @@ set_joint_limits_enabled(self, enabled: bool) -> None
 robot.set_joint_limits_enabled(False)
 robot.move_j([0.0] * robot.joint_nums)
 robot.set_joint_limits_enabled(True)
+```
+
+---
+
+### Get Joint Limits Enabled State — `get_joint_limits_enabled()`
+
+**Description:** Get whether runtime software joint-limit clamping is currently enabled.
+
+**Default:** `False`
+
+**Function Definition:**
+
+```python
+get_joint_limits_enabled(self) -> bool
+```
+
+**Return Value:** `bool`
+
+- `True`: software joint limits are enabled.
+- `False`: software joint limits are disabled.
+
+**Usage Example:**
+
+```python
+enabled = robot.get_joint_limits_enabled()
+print("joint limits enabled:", enabled)
 ```
 
 ---
@@ -1724,7 +1774,9 @@ for i in range(1, robot.joint_nums + 1):
   - [正运动学 — fk()](#正运动学--fk)
 - [SDK 配置相关](#sdk-配置相关)
   - [设置自动切换运动模式开关 — set_auto_set_motion_mode_enabled()](#设置自动切换运动模式开关--set_auto_set_motion_mode_enabled)
+  - [获取自动切换运动模式开关状态 — get_auto_set_motion_mode_enabled()](#获取自动切换运动模式开关状态--get_auto_set_motion_mode_enabled)
   - [设置关节软件限位开关 — set_joint_limits_enabled()](#设置关节软件限位开关--set_joint_limits_enabled)
+  - [获取关节软件限位开关状态 — get_joint_limits_enabled()](#获取关节软件限位开关状态--get_joint_limits_enabled)
 - [Leader-Follower 臂](#leader-follower-臂)
   - [设定正常模式 — set_normal_mode()](#设定正常模式--set_normal_mode)
   - [设定主导臂（Leader）模式 — set_leader_mode()](#设定主导臂leader模式--set_leader_mode)
@@ -1823,8 +1875,6 @@ create_agx_arm_config(
 | 名称 | 类型 | 说明 |
 | --- | --- | --- |
 | `joint_limits` | `dict` | 自定义关节限位（单位：rad）。默认自动赋值，暂不会将手动输入的限位生效到实际控制中。示例见下文 |
-| `auto_set_motion_mode` | `bool` | 是否在发送运动类 API 前由 SDK 自动切换到所需运动模式。默认 `True`。如果你希望在自己的上层逻辑中显式控制模式切换，可设为 `False`。 |
-| `enable_joint_limits` | `bool` | 是否在运行时运动接口中启用关节软件限位夹紧。默认 `True`。设为 `False` 时跳过机型 `joint_limits` 夹紧（仍保留基础数值范围检查）。 |
 | `channel` | `str` | CAN 通道标识，默认 `"can0"`。当前文档已验证的写法为：`"agx_cando"` 使用 `"0"`、`"1"`、`"2"` 这类设备索引字符串；`"socketcan"` 使用 Linux 下的 CAN 网卡名，例如 `"can0"` 或重命名后的接口名；`"slcan"` 在 macOS（`Darwin`）下使用串口设备路径，例如 `"/dev/ttyACM0"`。 |
 | `interface` | `str` | CAN 接口类型，默认 `"socketcan"`。当前文档已验证并提供说明的取值为 Linux 下的 `"socketcan"`、Windows 下 Agilex CANDO 后端使用的 `"agx_cando"`、以及 macOS（`Darwin`）下的 `"slcan"`。 |
 | `bitrate` | `int` | CAN 波特率，默认 `1000000`（1 Mbps） |
@@ -1869,8 +1919,6 @@ create_agx_arm_config(
     }
 }
 ```
-
-> **说明：** `auto_set_motion_mode` 只有在显式传入时，才会出现在返回配置的顶层字段中。
 
 已验证的接口与通道填写示例：
 
@@ -2764,6 +2812,32 @@ robot.move_j([0.0] * robot.joint_nums)
 
 ---
 
+### 获取自动切换运动模式开关状态 — `get_auto_set_motion_mode_enabled()`
+
+**功能说明：** 获取运行时在调用 `move_*` 前自动执行 `set_motion_mode()` 切换的当前开关状态。
+
+**默认值：** `True`
+
+**函数定义：**
+
+```python
+get_auto_set_motion_mode_enabled(self) -> bool
+```
+
+**返回值：** `bool`
+
+- `True`：自动切换已启用。
+- `False`：自动切换已关闭。
+
+**使用示例：**
+
+```python
+enabled = robot.get_auto_set_motion_mode_enabled()
+print("自动切换运动模式:", enabled)
+```
+
+---
+
 ### 设置关节软件限位开关 — `set_joint_limits_enabled()`
 
 **功能说明：** 运行时设置是否启用关节软件限位。
@@ -2789,6 +2863,32 @@ set_joint_limits_enabled(self, enabled: bool) -> None
 robot.set_joint_limits_enabled(False)
 robot.move_j([0.0] * robot.joint_nums)
 robot.set_joint_limits_enabled(True)
+```
+
+---
+
+### 获取关节软件限位开关状态 — `get_joint_limits_enabled()`
+
+**功能说明：** 获取运行时关节软件限位当前是否启用。
+
+**默认值：** `False`
+
+**函数定义：**
+
+```python
+get_joint_limits_enabled(self) -> bool
+```
+
+**返回值：** `bool`
+
+- `True`：关节软件限位已启用。
+- `False`：关节软件限位已关闭。
+
+**使用示例：**
+
+```python
+enabled = robot.get_joint_limits_enabled()
+print("关节软件限位:", enabled)
 ```
 
 ---

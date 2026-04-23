@@ -1,9 +1,8 @@
 include LICENSE
 include *.md
 include *.sh
-graft asserts
+graft assets
 graft docs
-graft pyAgxArm/configs
 graft pyAgxArm/demos
 graft pyAgxArm/extensions
 graft pyAgxArm/scripts

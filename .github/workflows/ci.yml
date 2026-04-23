@@ -1,16 +1,10 @@
 name: CI
 
 on:
+  workflow_dispatch:
   push:
-    branches: ["**"]
-    paths-ignore:
-      - "**/*.md"
-      - "**/*.sh"
-      - "docs/**"
-      - "pyAgxArm/scripts/**"
-      - "asserts/**"
-      - "pyAgxArm/demos/**"
-  pull_request:
+    branches:
+      - master
     paths-ignore:
       - "**/*.md"
       - "**/*.sh"
@@ -52,7 +46,6 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-          cache: "pip"
 
       - name: Pin build tools for Python 3.6
         if: matrix.python-version == '3.6'
@@ -114,7 +107,6 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-          cache: "pip"
 
       - name: Pin tools for Python 3.6
         if: matrix.python-version == '3.6'

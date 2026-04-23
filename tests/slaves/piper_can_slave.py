@@ -38,6 +38,9 @@ class PiperCanSlave:
         self._mode_feedback = 0x01
         self._proactive_burst_sent = False
         self._proactive_refresh = False
+        self._cpv_reply_enabled = True
+        self._cpv_store: dict = {}
+        self._joint_assistance = [0] * self._joint_count
 
     def start(self):
         self._th.start()
@@ -201,6 +204,14 @@ class PiperCanSlave:
                         data=pl.pack_feedback_47b_crash_protection(),
                     )
                 )
+            if d[0] == 0x05:
+                out.append(
+                    can.Message(
+                        is_extended_id=False,
+                        arbitration_id=0x488,
+                        data=pl.pack_feedback_488_joint_assistance(self._joint_assistance),
+                    )
+                )
             if d[2] in (0x01, 0x02):
                 out.append(
                     can.Message(
@@ -258,7 +269,47 @@ class PiperCanSlave:
                     data=pl.pack_set_instruction_response(0x7A, 0),
                 )
             )
+        elif aid == 0x487:
+            self._joint_assistance = list(d[:6])
+            out.append(
+                can.Message(
+                    is_extended_id=False,
+                    arbitration_id=0x476,
+                    data=pl.pack_set_instruction_response(0x87, 0),
+                )
+            )
+            out.append(
+                can.Message(
+                    is_extended_id=False,
+                    arbitration_id=0x488,
+                    data=pl.pack_feedback_488_joint_assistance(self._joint_assistance),
+                )
+            )
         return out
+
+    def _cpv_replies(self, aid: int, data: bytes) -> List[can.Message]:
+        if not self._cpv_reply_enabled or not (0x181 <= aid <= 0x186):
+            return []
+        d = data.ljust(8, b"\x00")
+        mode_byte = d[0]
+        if mode_byte not in (0x72, 0x77):
+            return []
+        type_str = chr(d[1]) + chr(d[2])
+        raw = int.from_bytes(bytes(d[3:7]), "big", signed=True)
+        ji = aid - 0x180
+        if mode_byte == 0x77:
+            self._cpv_store[(ji, type_str)] = raw
+            out_raw = raw
+        else:
+            out_raw = self._cpv_store.get((ji, type_str), 0)
+        payload = pl.pack_cpv_ack(type_str, out_raw)
+        return [
+            can.Message(
+                is_extended_id=False,
+                arbitration_id=aid,
+                data=payload,
+            )
+        ]
 
     def _firmware_replies(self, aid: int) -> List[can.Message]:
         if aid != 0x4AF:
@@ -307,6 +358,8 @@ class PiperCanSlave:
                     self._send_and_record(m)
 
             for m in self._set_instruction_replies(aid, payload):
+                self._send_and_record(m)
+            for m in self._cpv_replies(aid, payload):
                 self._send_and_record(m)
             for m in self._firmware_replies(aid):
                 self._send_and_record(m)

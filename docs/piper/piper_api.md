@@ -64,16 +64,23 @@
   - [Linear Motion — move_l()](#linear-motion--move_l)
   - [Arc Motion — move_c()](#arc-motion--move_c)
   - [Single Joint MIT Control — move_mit()](#single-joint-mit-control--move_mit)
+- [CPV Motion and Parameters](#cpv-motion-and-parameters)
+  - [CPV Command APIs](#cpv-command-apis)
+  - [CPV Parameter Read APIs](#cpv-parameter-read-apis)
+  - [CPV Parameter Write APIs](#cpv-parameter-write-apis)
 - [Advanced Parameter Reading and Configuration](#advanced-parameter-reading-and-configuration)
   - [Get Joint Angle/Velocity Limits — get_joint_angle_vel_limits()](#get-joint-anglevelocity-limits--get_joint_angle_vel_limits)
   - [Get Joint Acceleration Limits — get_joint_acc_limits()](#get-joint-acceleration-limits--get_joint_acc_limits)
   - [Get Flange Velocity/Acceleration Limits — get_flange_vel_acc_limits()](#get-flange-velocityacceleration-limits--get_flange_vel_acc_limits)
   - [Get Crash Protection Rating — get_crash_protection_rating()](#get-crash-protection-rating--get_crash_protection_rating)
+  - [Get Joint Assistance Rating — get_joint_assistance_rating()](#get-joint-assistance-rating--get_joint_assistance_rating)
   - [Calibrate Joint — calibrate_joint()](#calibrate-joint--calibrate_joint)
+  - [Clear Joint Error — clear_joint_error()](#clear-joint-error--clear_joint_error)
   - [Set Joint Angle/Velocity Limits — set_joint_angle_vel_limits()](#set-joint-anglevelocity-limits--set_joint_angle_vel_limits)
   - [Set Joint Acceleration Limits — set_joint_acc_limits()](#set-joint-acceleration-limits--set_joint_acc_limits)
   - [Set Flange Velocity/Acceleration Limits — set_flange_vel_acc_limits()](#set-flange-velocityacceleration-limits--set_flange_vel_acc_limits)
   - [Set Crash Protection Rating — set_crash_protection_rating()](#set-crash-protection-rating--set_crash_protection_rating)
+  - [Set Joint Assistance Rating — set_joint_assistance_rating()](#set-joint-assistance-rating--set_joint_assistance_rating)
   - [Reset Flange Limits to Default — set_flange_vel_acc_limits_to_default()](#reset-flange-limits-to-default--set_flange_vel_acc_limits_to_default)
   - [Reset Joint Limits to Default — set_joint_angle_vel_acc_limits_to_default()](#reset-joint-limits-to-default--set_joint_angle_vel_acc_limits_to_default)
   - [Set Link Velocity/Acceleration Periodic Feedback — set_links_vel_acc_period_feedback()](#set-link-velocityacceleration-periodic-feedback--set_links_vel_acc_period_feedback)
@@ -1915,6 +1922,57 @@ for i in range(1, robot.joint_nums + 1):
 
 ---
 
+## CPV Motion and Parameters
+
+CPV mode provides direct joint **position / velocity command** and parameter read/write APIs.  
+Calling CPV APIs will internally switch to CPV motion mode when needed (`set_motion_mode(MOVE_CPV)`).
+
+### CPV Command APIs
+
+| API | Signature | Description |
+| --- | --- | --- |
+| `move_cpv_pos` | `move_cpv_pos(self, joint_index: Literal[1, 2, 3, 4, 5, 6], pos: float) -> None` | Send CPV position command (rad). If outside joint limit, SDK clamps and logs warning. |
+| `move_cpv_vel` | `move_cpv_vel(self, joint_index: Literal[1, 2, 3, 4, 5, 6], vel: float) -> None` | Send CPV velocity command (rad/s). |
+
+### CPV Parameter Read APIs
+
+All read APIs support `timeout` and `min_interval`, and return `float | None`.
+
+| API | Unit / Meaning |
+| --- | --- |
+| `get_cpv_pos(joint_index, timeout=1.0, min_interval=1.0)` | Joint position (rad) |
+| `get_cpv_vel(joint_index, timeout=1.0, min_interval=1.0)` | Joint velocity (rad/s) |
+| `get_cpv_acc(joint_index, timeout=1.0, min_interval=1.0)` | Acceleration (rad/s^2) |
+| `get_cpv_dcc(joint_index, timeout=1.0, min_interval=1.0)` | Deceleration (rad/s^2) |
+| `get_cpv_cv(joint_index, timeout=1.0, min_interval=1.0)` | Contour/profile velocity (rad/s) |
+| `get_cpv_pp(joint_index, timeout=1.0, min_interval=1.0)` | Position-loop proportional gain |
+| `get_cpv_kp(joint_index, timeout=1.0, min_interval=1.0)` | Velocity-loop proportional gain |
+| `get_cpv_ki(joint_index, timeout=1.0, min_interval=1.0)` | Velocity-loop integral gain |
+
+### CPV Parameter Write APIs
+
+Write APIs are **ACK + read-back verified** and return `bool`.
+
+| API | Description |
+| --- | --- |
+| `set_cpv_acc(joint_index, acc, timeout=1.0)` | Set CPV acceleration parameter |
+| `set_cpv_dcc(joint_index, dcc, timeout=1.0)` | Set CPV deceleration parameter |
+| `set_cpv_cv(joint_index, cv, timeout=1.0)` | Set CPV contour/profile velocity parameter |
+| `set_cpv_pp(joint_index, pp, timeout=1.0)` | Set CPV position-loop proportional gain |
+| `set_cpv_kp(joint_index, kp, timeout=1.0)` | Set CPV velocity-loop proportional gain |
+| `set_cpv_ki(joint_index, ki, timeout=1.0)` | Set CPV velocity-loop integral gain |
+
+**Quick Example:**
+
+```python
+ok = robot.set_cpv_acc(joint_index=1, acc=2.0)
+print("set_cpv_acc:", ok)
+print("cpv_acc =", robot.get_cpv_acc(joint_index=1))
+robot.move_cpv_vel(joint_index=1, vel=0.2)
+```
+
+---
+
 ## Advanced Parameter Reading and Configuration
 
 ### Get Joint Angle/Velocity Limits — `get_joint_angle_vel_limits()`
@@ -2107,6 +2165,47 @@ if rating is not None:
 
 ---
 
+### Get Joint Assistance Rating — `get_joint_assistance_rating()`
+
+**Description:** Read the assistance rating list of all joints.
+
+**Function Definition:**
+
+```python
+get_joint_assistance_rating(
+    self,
+    timeout: float = 1.0,
+    min_interval: float = 1.0,
+) -> MessageAbstract[list[int]] | None
+```
+
+**Parameters:**
+
+| Name | Type | Description |
+| --- | --- | --- |
+| `timeout` | `float` | Wait timeout in seconds, default `1.0`; `0.0` means non-blocking |
+| `min_interval` | `float` | Minimum request interval in seconds, default `1.0` |
+
+**Return Value:** `MessageAbstract[list[int]] | None`  
+`.msg` is a `list[int]` (length 6), each value range: `0~10`.
+
+**Usage Example:**
+
+```python
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, PiperFW
+
+cfg = create_agx_arm_config(robot=ArmModel.PIPER, firmeware_version=PiperFW.DEFAULT, channel="can0")
+robot = AgxArmFactory.create_arm(cfg)
+robot.connect()
+
+rating = robot.get_joint_assistance_rating()
+if rating is not None:
+    print(rating.msg)
+    print(rating.hz, rating.timestamp)
+```
+
+---
+
 ### Calibrate Joint — `calibrate_joint()`
 
 **Description:** Perform the zeroing / calibration process for a specified joint (waits for controller ACK / response and returns the result).
@@ -2147,6 +2246,51 @@ input("请手动将关节移动到零位位置后按回车继续...")
 
 if robot.calibrate_joint(joint_index):
     print("calibrate_joint success")
+```
+
+---
+
+### Clear Joint Error — `clear_joint_error()`
+
+**Description:** Clear joint error code on one joint or all joints.
+
+**Function Definition:**
+
+```python
+clear_joint_error(
+    self,
+    joint_index: Literal[1, 2, 3, 4, 5, 6, 255] = 255,
+    timeout: float = 1.0,
+) -> bool
+```
+
+**Parameters:**
+
+| Name | Type | Description |
+| --- | --- | --- |
+| `joint_index` | `int` | Joint index: `1~6` for one joint; `255` for all joints |
+| `timeout` | `float` | ACK timeout in seconds, default `1.0` |
+
+**Return Value:** `bool` — ACK-only API (`True` means response received within timeout).
+
+> **Tip:** This API only confirms that ACK/response is received; it does not include automatic read-back verification.
+
+**Usage Example:**
+
+```python
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, PiperFW
+
+cfg = create_agx_arm_config(robot=ArmModel.PIPER, firmeware_version=PiperFW.DEFAULT, channel="can0")
+robot = AgxArmFactory.create_arm(cfg)
+robot.connect()
+
+# Clear joint-2 error
+ok = robot.clear_joint_error(joint_index=2)
+print("clear_joint_error(j2) =", ok)
+
+# Clear all-joint errors
+ok = robot.clear_joint_error(joint_index=255)
+print("clear_joint_error(all) =", ok)
 ```
 
 ---
@@ -2334,6 +2478,51 @@ print("set_crash_protection_rating success =", success)
 
 ---
 
+### Set Joint Assistance Rating — `set_joint_assistance_rating()`
+
+**Description:** Set assistance rating for one joint or all joints.
+
+**Function Definition:**
+
+```python
+set_joint_assistance_rating(
+    self,
+    joint_index: Literal[1, 2, 3, 4, 5, 6, 255] = 255,
+    rating: Literal[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10] = 0,
+    timeout: float = 1.0,
+) -> bool
+```
+
+**Parameters:**
+
+| Name | Type | Description |
+| --- | --- | --- |
+| `joint_index` | `int` | Joint index: `1~6` for one joint; `255` for all joints |
+| `rating` | `int` | Assistance level, range `[0, 10]` |
+| `timeout` | `float` | ACK / verification timeout in seconds, default `1.0` |
+
+**Return Value:** `bool` — `True` indicates ACK received and read-back verification passed.
+
+**Usage Example:**
+
+```python
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, PiperFW
+
+cfg = create_agx_arm_config(robot=ArmModel.PIPER, firmeware_version=PiperFW.DEFAULT, channel="can0")
+robot = AgxArmFactory.create_arm(cfg)
+robot.connect()
+
+# Set joint-1 assistance rating
+ok = robot.set_joint_assistance_rating(joint_index=1, rating=3)
+print("set_joint_assistance_rating(j1) =", ok)
+
+# Set all-joint assistance rating
+ok = robot.set_joint_assistance_rating(joint_index=255, rating=2)
+print("set_joint_assistance_rating(all) =", ok)
+```
+
+---
+
 ### Reset Flange Limits to Default — `set_flange_vel_acc_limits_to_default()`
 
 **Description:** Reset the end-effector velocity / acceleration limits to default values.
@@ -2515,16 +2704,23 @@ print("disable periodic feedback success =", success)
   - [直线运动 — move_l()](#直线运动--move_l)
   - [圆弧运动 — move_c()](#圆弧运动--move_c)
   - [单关节 MIT 控制 — move_mit()](#单关节-mit-控制--move_mit)
+- [CPV 运动与参数](#cpv-运动与参数)
+  - [CPV 指令接口](#cpv-指令接口)
+  - [CPV 参数读取接口](#cpv-参数读取接口)
+  - [CPV 参数写入接口](#cpv-参数写入接口)
 - [高级参数读取与配置](#高级参数读取与配置)
   - [读取关节角度/速度限制 — get_joint_angle_vel_limits()](#读取关节角度速度限制--get_joint_angle_vel_limits)
   - [读取关节加速度限制 — get_joint_acc_limits()](#读取关节加速度限制--get_joint_acc_limits)
   - [读取法兰速度/加速度限制 — get_flange_vel_acc_limits()](#读取法兰速度加速度限制--get_flange_vel_acc_limits)
   - [读取碰撞防护等级 — get_crash_protection_rating()](#读取碰撞防护等级--get_crash_protection_rating)
+  - [读取关节助力等级 — get_joint_assistance_rating()](#读取关节助力等级--get_joint_assistance_rating)
   - [关节置零/标定 — calibrate_joint()](#关节置零标定--calibrate_joint)
+  - [清除关节错误码 — clear_joint_error()](#清除关节错误码--clear_joint_error)
   - [配置关节角度/速度限制 — set_joint_angle_vel_limits()](#配置关节角度速度限制--set_joint_angle_vel_limits)
   - [配置关节加速度限制 — set_joint_acc_limits()](#配置关节加速度限制--set_joint_acc_limits)
   - [配置法兰速度/加速度限制 — set_flange_vel_acc_limits()](#配置法兰速度加速度限制--set_flange_vel_acc_limits)
   - [配置碰撞防护等级 — set_crash_protection_rating()](#配置碰撞防护等级--set_crash_protection_rating)
+  - [配置关节助力等级 — set_joint_assistance_rating()](#配置关节助力等级--set_joint_assistance_rating)
   - [恢复法兰限制默认值 — set_flange_vel_acc_limits_to_default()](#恢复法兰限制默认值--set_flange_vel_acc_limits_to_default)
   - [恢复关节限制默认值 — set_joint_angle_vel_acc_limits_to_default()](#恢复关节限制默认值--set_joint_angle_vel_acc_limits_to_default)
   - [设置 Link 速度/加速度周期反馈 — set_links_vel_acc_period_feedback()](#设置-link-速度加速度周期反馈--set_links_vel_acc_period_feedback)
@@ -4368,6 +4564,57 @@ for i in range(1, robot.joint_nums + 1):
 
 ---
 
+## CPV 运动与参数
+
+CPV 模式提供了关节 **位置/速度指令** 与参数读写接口。  
+调用 CPV 接口时，SDK 会在需要时自动切换到 `MOVE_CPV` 运动模式。
+
+### CPV 指令接口
+
+| 接口 | 签名 | 说明 |
+| --- | --- | --- |
+| `move_cpv_pos` | `move_cpv_pos(self, joint_index: Literal[1, 2, 3, 4, 5, 6], pos: float) -> None` | 下发 CPV 位置指令（rad）。若超出关节限位，SDK 会夹紧并输出告警日志。 |
+| `move_cpv_vel` | `move_cpv_vel(self, joint_index: Literal[1, 2, 3, 4, 5, 6], vel: float) -> None` | 下发 CPV 速度指令（rad/s）。 |
+
+### CPV 参数读取接口
+
+所有读取接口都支持 `timeout` 与 `min_interval` 参数，返回 `float | None`。
+
+| 接口 | 单位/含义 |
+| --- | --- |
+| `get_cpv_pos(joint_index, timeout=1.0, min_interval=1.0)` | 关节位置（rad） |
+| `get_cpv_vel(joint_index, timeout=1.0, min_interval=1.0)` | 关节速度（rad/s） |
+| `get_cpv_acc(joint_index, timeout=1.0, min_interval=1.0)` | 加速度（rad/s^2） |
+| `get_cpv_dcc(joint_index, timeout=1.0, min_interval=1.0)` | 减速度（rad/s^2） |
+| `get_cpv_cv(joint_index, timeout=1.0, min_interval=1.0)` | 轮廓/轨迹速度（rad/s） |
+| `get_cpv_pp(joint_index, timeout=1.0, min_interval=1.0)` | 位置环比例增益 |
+| `get_cpv_kp(joint_index, timeout=1.0, min_interval=1.0)` | 速度环比例增益 |
+| `get_cpv_ki(joint_index, timeout=1.0, min_interval=1.0)` | 速度环积分增益 |
+
+### CPV 参数写入接口
+
+写接口为 **ACK + 读回校验**，返回 `bool`。
+
+| 接口 | 说明 |
+| --- | --- |
+| `set_cpv_acc(joint_index, acc, timeout=1.0)` | 设置 CPV 加速度参数 |
+| `set_cpv_dcc(joint_index, dcc, timeout=1.0)` | 设置 CPV 减速度参数 |
+| `set_cpv_cv(joint_index, cv, timeout=1.0)` | 设置 CPV 轮廓/轨迹速度参数 |
+| `set_cpv_pp(joint_index, pp, timeout=1.0)` | 设置 CPV 位置环比例增益 |
+| `set_cpv_kp(joint_index, kp, timeout=1.0)` | 设置 CPV 速度环比例增益 |
+| `set_cpv_ki(joint_index, ki, timeout=1.0)` | 设置 CPV 速度环积分增益 |
+
+**快速示例：**
+
+```python
+ok = robot.set_cpv_acc(joint_index=1, acc=2.0)
+print("set_cpv_acc:", ok)
+print("cpv_acc =", robot.get_cpv_acc(joint_index=1))
+robot.move_cpv_vel(joint_index=1, vel=0.2)
+```
+
+---
+
 ## 高级参数读取与配置
 
 ### 读取关节角度/速度限制 — `get_joint_angle_vel_limits()`
@@ -4560,6 +4807,47 @@ if rating is not None:
 
 ---
 
+### 读取关节助力等级 — `get_joint_assistance_rating()`
+
+**功能说明：** 读取全部关节的助力等级。
+
+**函数定义：**
+
+```python
+get_joint_assistance_rating(
+    self,
+    timeout: float = 1.0,
+    min_interval: float = 1.0,
+) -> MessageAbstract[list[int]] | None
+```
+
+**参数说明：**
+
+| 名称 | 类型 | 说明 |
+| --- | --- | --- |
+| `timeout` | `float` | 等待反馈超时（秒），默认 `1.0`；`0.0` 表示非阻塞 |
+| `min_interval` | `float` | 最小请求间隔（秒），默认 `1.0` |
+
+**返回值：** `MessageAbstract[list[int]] | None`  
+其中 `.msg` 为 `list[int]`（长度 6），每个元素取值范围 `0~10`。
+
+**使用示例：**
+
+```python
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, PiperFW
+
+cfg = create_agx_arm_config(robot=ArmModel.PIPER, firmeware_version=PiperFW.DEFAULT, channel="can0")
+robot = AgxArmFactory.create_arm(cfg)
+robot.connect()
+
+rating = robot.get_joint_assistance_rating()
+if rating is not None:
+    print(rating.msg)
+    print(rating.hz, rating.timestamp)
+```
+
+---
+
 ### 关节置零/标定 — `calibrate_joint()`
 
 **功能说明：** 对指定关节执行置零/标定流程（等待控制器 ACK/响应并返回结果）。
@@ -4600,6 +4888,51 @@ input("请手动将关节移动到零位位置后按回车继续...")
 
 if robot.calibrate_joint(joint_index):
     print("calibrate_joint success")
+```
+
+---
+
+### 清除关节错误码 — `clear_joint_error()`
+
+**功能说明：** 清除单关节或全部关节错误码。
+
+**函数定义：**
+
+```python
+clear_joint_error(
+    self,
+    joint_index: Literal[1, 2, 3, 4, 5, 6, 255] = 255,
+    timeout: float = 1.0,
+) -> bool
+```
+
+**参数说明：**
+
+| 名称 | 类型 | 说明 |
+| --- | --- | --- |
+| `joint_index` | `int` | 关节序号：`1~6` 清除单关节；`255` 清除全部 |
+| `timeout` | `float` | 等待 ACK 超时（秒），默认 `1.0` |
+
+**返回值：** `bool` — 该接口仅做 ACK 校验（`True` 表示超时内收到了响应）。
+
+> **提示：** 该接口仅确认收到 ACK/响应，不包含自动读回校验。
+
+**使用示例：**
+
+```python
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, PiperFW
+
+cfg = create_agx_arm_config(robot=ArmModel.PIPER, firmeware_version=PiperFW.DEFAULT, channel="can0")
+robot = AgxArmFactory.create_arm(cfg)
+robot.connect()
+
+# 清除 2 号关节错误
+ok = robot.clear_joint_error(joint_index=2)
+print("clear_joint_error(j2) =", ok)
+
+# 清除全部关节错误
+ok = robot.clear_joint_error(joint_index=255)
+print("clear_joint_error(all) =", ok)
 ```
 
 ---
@@ -4783,6 +5116,51 @@ robot.connect()
 
 success = robot.set_crash_protection_rating(joint_index=1, rating=1)
 print("set_crash_protection_rating success =", success)
+```
+
+---
+
+### 配置关节助力等级 — `set_joint_assistance_rating()`
+
+**功能说明：** 设置单关节或全部关节的助力等级。
+
+**函数定义：**
+
+```python
+set_joint_assistance_rating(
+    self,
+    joint_index: Literal[1, 2, 3, 4, 5, 6, 255] = 255,
+    rating: Literal[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10] = 0,
+    timeout: float = 1.0,
+) -> bool
+```
+
+**参数说明：**
+
+| 名称 | 类型 | 说明 |
+| --- | --- | --- |
+| `joint_index` | `int` | 关节序号：`1~6` 配置单关节；`255` 配置全部 |
+| `rating` | `int` | 助力等级，范围 `[0, 10]` |
+| `timeout` | `float` | 等待 ACK/校验超时（秒），默认 `1.0` |
+
+**返回值：** `bool` — `True` 表示收到 ACK 且读回校验通过。
+
+**使用示例：**
+
+```python
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, PiperFW
+
+cfg = create_agx_arm_config(robot=ArmModel.PIPER, firmeware_version=PiperFW.DEFAULT, channel="can0")
+robot = AgxArmFactory.create_arm(cfg)
+robot.connect()
+
+# 设置 1 号关节助力等级
+ok = robot.set_joint_assistance_rating(joint_index=1, rating=3)
+print("set_joint_assistance_rating(j1) =", ok)
+
+# 设置全部关节助力等级
+ok = robot.set_joint_assistance_rating(joint_index=255, rating=2)
+print("set_joint_assistance_rating(all) =", ok)
 ```
 
 ---

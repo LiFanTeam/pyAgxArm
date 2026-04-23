@@ -10,7 +10,7 @@ on:
       - "**/*.sh"
       - "docs/**"
       - "pyAgxArm/scripts/**"
-      - "asserts/**"
+      - "assets/**"
       - "pyAgxArm/demos/**"
 
 jobs:

@@ -14,6 +14,8 @@
   - [Create Arm Driver Instance — AgxArmFactory.create_arm()](#create-arm-driver-instance--agxarmfactorycreate_arm)
   - [Connect — connect()](#connect--connect)
   - [Disconnect — disconnect()](#disconnect--disconnect)
+  - [Check Communication Error State — has_comm_error()](#check-communication-error-state--has_comm_error)
+  - [Get Communication Error — get_comm_error()](#get-communication-error--get_comm_error)
   - [Initialize End Effector — init_effector()](#initialize-end-effector--init_effector)
 - [General Status](#general-status)
   - [Get Joint Count — joint_nums](#get-joint-count--joint_nums)
@@ -323,6 +325,61 @@ print(robot.is_connected())
 
 robot.disconnect()
 print(robot.is_connected())
+```
+
+---
+
+### Check Communication Error State — `has_comm_error()`
+
+**Description:** Check whether the communication layer is currently in an error state.
+
+**Function Definition:**
+
+```python
+has_comm_error(self) -> bool
+```
+
+**Return Value:** `bool` — `True` if a communication error has been recorded; otherwise `False`.
+
+**Usage Example:**
+
+```python
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, PiperFW
+
+cfg = create_agx_arm_config(robot=ArmModel.PIPER, firmeware_version=PiperFW.DEFAULT, channel="can0")
+robot = AgxArmFactory.create_arm(cfg)
+robot.connect()
+
+if robot.has_comm_error():
+    print("Communication error detected.")
+```
+
+---
+
+### Get Communication Error — `get_comm_error()`
+
+**Description:** Get the most recent communication error information.
+
+**Function Definition:**
+
+```python
+get_comm_error(self)
+```
+
+**Return Value:** `Any` — The error object stored in the communication context. Usually returns `None` when there is no current error.
+
+**Usage Example:**
+
+```python
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, PiperFW
+
+cfg = create_agx_arm_config(robot=ArmModel.PIPER, firmeware_version=PiperFW.DEFAULT, channel="can0")
+robot = AgxArmFactory.create_arm(cfg)
+robot.connect()
+
+err = robot.get_comm_error()
+if err is not None:
+    print("Last communication error:", err)
 ```
 
 ---
@@ -2654,6 +2711,8 @@ print("disable periodic feedback success =", success)
   - [创建机械臂 Driver 实例 — AgxArmFactory.create_arm()](#创建机械臂-driver-实例--agxarmfactorycreate_arm)
   - [创建连接 — connect()](#创建连接--connect)
   - [断开连接 — disconnect()](#断开连接--disconnect)
+  - [检查通信错误状态 — has_comm_error()](#检查通信错误状态--has_comm_error)
+  - [获取通信错误信息 — get_comm_error()](#获取通信错误信息--get_comm_error)
   - [初始化末端执行器 — init_effector()](#初始化末端执行器--init_effector)
 - [通用状态](#通用状态)
   - [获取关节数量 — joint_nums](#获取关节数量--joint_nums)
@@ -2963,6 +3022,61 @@ print(robot.is_connected())
 
 robot.disconnect()
 print(robot.is_connected())
+```
+
+---
+
+### 检查通信错误状态 — `has_comm_error()`
+
+**功能说明：** 判断当前通信层是否处于错误状态。
+
+**函数定义：**
+
+```python
+has_comm_error(self) -> bool
+```
+
+**返回值：** `bool` —— `True` 表示通信层已记录错误；`False` 表示当前未检测到通信错误。
+
+**使用示例：**
+
+```python
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, PiperFW
+
+cfg = create_agx_arm_config(robot=ArmModel.PIPER, firmeware_version=PiperFW.DEFAULT, channel="can0")
+robot = AgxArmFactory.create_arm(cfg)
+robot.connect()
+
+if robot.has_comm_error():
+    print("检测到通信错误。")
+```
+
+---
+
+### 获取通信错误信息 — `get_comm_error()`
+
+**功能说明：** 获取最近一次通信错误信息。
+
+**函数定义：**
+
+```python
+get_comm_error(self)
+```
+
+**返回值：** `Any` —— 通信上下文记录的错误对象；若当前无错误，通常返回 `None`。
+
+**使用示例：**
+
+```python
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, PiperFW
+
+cfg = create_agx_arm_config(robot=ArmModel.PIPER, firmeware_version=PiperFW.DEFAULT, channel="can0")
+robot = AgxArmFactory.create_arm(cfg)
+robot.connect()
+
+err = robot.get_comm_error()
+if err is not None:
+    print("最近一次通信错误:", err)
 ```
 
 ---

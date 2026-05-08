@@ -1953,6 +1953,8 @@ All read APIs support `timeout` and `min_interval`, and return `float | None`.
 
 Write APIs are **ACK + read-back verified** and return `bool`.
 
+> **Note:** `set_cpv_*` APIs save parameters to the motor controller Flash. Flash has a finite write lifetime, so avoid setting these parameters frequently or repeatedly during runtime; excessive writes may cause abnormal motor behavior.
+
 | API | Description |
 | --- | --- |
 | `set_cpv_acc(joint_index, acc, timeout=1.0)` | Set CPV acceleration parameter |
@@ -4594,6 +4596,8 @@ CPV 模式提供了关节 **位置/速度指令** 与参数读写接口。
 ### CPV 参数写入接口
 
 写接口为 **ACK + 读回校验**，返回 `bool`。
+
+> **提示：** `set_cpv_*` 接口会将参数保存到电机主控的 Flash 中。Flash 存在写入寿命限制，请避免在运行过程中频繁或重复设置这些参数；过度写入可能导致电机出现异常。
 
 | 接口 | 说明 |
 | --- | --- |

@@ -90,7 +90,7 @@ import time
 from platform import system
 from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, NeroFW
 
-# If Nero's software version is <= 1.10, select NeroFW.DEFAULT; if it is >= 1.11, select NeroFW.V111.
+# Nero firmware: <= 1.10 → NeroFW.DEFAULT; 1.11 → NeroFW.V111; >= 1.12 → NeroFW.V112.
 platform_system = system()
 if platform_system == "Windows":
     interface = "agx_cando"
@@ -226,7 +226,7 @@ import time
 from platform import system
 from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, NeroFW
 
-# Nero的软件版本 <= 1.10，选择 NeroFW.DEFAULT；>= 1.11，选择 NeroFW.V111
+# Nero 固件：≤ 1.10 选 NeroFW.DEFAULT；1.11 选 NeroFW.V111；≥ 1.12 选 NeroFW.V112。
 platform_system = system()
 if platform_system == "Windows":
     interface = "agx_cando"

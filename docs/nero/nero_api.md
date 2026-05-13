@@ -84,14 +84,15 @@ from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, NeroFW
 
 ## Firmware Version
 
-Nero series firmware versioning is independent from the Piper series. The SDK uses the `firmeware_version` parameter in `create_agx_arm_config()` to select the matching driver. The firmware version number used here is the software version number, such as `"1.11"`.
+Nero series firmware versioning is independent from the Piper series. The SDK uses the `firmeware_version` parameter in `create_agx_arm_config()` to select the matching driver. The firmware version number used here is the software version number, such as `"1.11"` or `"1.12"`.
 
 ### Version List
 
 | SDK Version | Constant | Firmware Range | Key Differences |
 | --- | --- | --- | --- |
 | `"default"` | `NeroFW.DEFAULT` | ≤ 1.10 | MIT torque: joints 1-2 input range ±24 N·m, joints 3-4 range ±18 N·m, joints 5-7 range ±8 N·m; 8-bit encoding |
-| `"v111"` | `NeroFW.V111` | ≥ 1.11 | MIT torque: all joints range ±16 N·m; 12-bit encoding; CRC checksum removed; motion mode code changed |
+| `"v111"` | `NeroFW.V111` | 1.11 | MIT torque: all joints range ±16 N·m; 12-bit encoding; CRC checksum removed; motion mode code changed |
+| `"v112"` | `NeroFW.V112` | ≥ 1.12 | Same MIT rules as `v111`; leader joint feedback uses Piper-style frames `0x155` / `0x156` / `0x157` and `0x170` (joint 7); `set_normal_mode()` is a no-op at firmware level (SDK keeps the call as silent compatibility) |
 
 ### How to Choose
 
@@ -100,9 +101,10 @@ Check the firmware version on the arm's main controller, you can use the [get_fi
 | Your Firmware | `firmeware_version` to Use | Constant |
 | --- | --- | --- |
 | 1.10 or earlier | `"default"` (or omit the parameter) | `NeroFW.DEFAULT` |
-| 1.11 or later  | `"v111"` | `NeroFW.V111` |
+| 1.11 | `"v111"` | `NeroFW.V111` |
+| 1.12 or later | `"v112"` | `NeroFW.V112` |
 
-> **⚠️ Safety Warning:** Using the wrong firmware version may cause the SDK to send incorrectly encoded torque commands. In particular, sending v111 protocol data to an older firmware arm may result in **dangerous unexpected motion**. Always verify your firmware version before choosing the SDK version.
+> **⚠️ Safety Warning:** Using the wrong firmware version may cause the SDK to send incorrectly encoded torque commands. In particular, sending v111/v112 protocol data to an older firmware arm may result in **dangerous unexpected motion**. Always verify your firmware version before choosing the SDK version.
 
 **Usage Example (recommended — use constants for IDE auto-complete):**
 
@@ -146,7 +148,7 @@ create_agx_arm_config(
 | --- | --- | --- |
 | `robot` | `str` | Robotic arm model. Use `ArmModel` constants: `ArmModel.NERO` / `ArmModel.PIPER` / `ArmModel.PIPER_H` / `ArmModel.PIPER_L` / `ArmModel.PIPER_X` (raw strings also accepted) |
 | `comm` | `str` | Communication type. Options: `"can"` (default). Note: `comm` is not the CAN channel name; the CAN channel is specified by `channel` |
-| `firmeware_version` | `str` | Main controller firmware version. Use per-robot constants: Nero series → `NeroFW.DEFAULT` / `NeroFW.V111`. See [Firmware Version](#firmware-version). Default `"default"` |
+| `firmeware_version` | `str` | Main controller firmware version. Use per-robot constants: Nero series → `NeroFW.DEFAULT` / `NeroFW.V111` / `NeroFW.V112`. See [Firmware Version](#firmware-version). Default `"default"` |
 
 **Optional Keyword Arguments (`**kwargs`):**
 
@@ -465,7 +467,7 @@ get_arm_status(self) -> MessageAbstract[ArmMsgFeedbackStatus] | None
 - `0x03` MOVE_C
 - `0x04` MOVE_MIT (Nero firmware < 1.11; use `NeroFW.DEFAULT`)
 - `0x05` MOVE_CPV
-- `0x06` MOVE_MIT (Nero firmware >= 1.11; use `NeroFW.V111`)
+- `0x06` MOVE_MIT (Nero firmware ≥ 1.11; use `NeroFW.V111` or `NeroFW.V112`)
 - `0xFF` UNKNOWN
 
 `teach_status` (teaching state):
@@ -1718,7 +1720,8 @@ move_mit(
 | `default`（≤ v110） | 1-2 | `[-24.0, 24.0]` | 8 | 1.882e-1 |
 | `default`（≤ v110） | 4-6 | `[-18.0, 18.0]` | 8 | 1.412e-1 |
 | `default`（≤ v110） | 5-7 | `[-8.0, 8.0]` | 8 | 6.275e-2 |
-| `v111`（≥ v111） | 1-7 | `[-16.0, 16.0]` | 12 | 7.813e-3 |
+| `v111`（1.11） | 1-7 | `[-16.0, 16.0]` | 12 | 7.813e-3 |
+| `v112`（≥ 1.12） | 1-7 | same as `v111` | 12 | 7.813e-3 |
 
 > **Note:** Consecutive execution of this command will overwrite the previous target value.
 >
@@ -2310,14 +2313,15 @@ from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, NeroFW
 
 ## 固件版本选择
 
-Nero 系列的固件版本体系与 Piper 系列相互独立。SDK 通过 `create_agx_arm_config()` 的 `firmeware_version` 参数选择匹配的驱动，这里的固件版本采用的是软件的版本号，例如 `"1.10"`。
+Nero 系列的固件版本体系与 Piper 系列相互独立。SDK 通过 `create_agx_arm_config()` 的 `firmeware_version` 参数选择匹配的驱动，这里的固件版本采用的是软件的版本号，例如 `"1.11"`、`"1.12"`。
 
 ### 版本列表
 
 | SDK 版本 | 常量 | 固件范围 | 主要差异 |
 | --- | --- | --- | --- |
 | `"default"` | `NeroFW.DEFAULT` | ≤ 1.10 | MIT 力矩：关节 1-2 输入范围 ±24 N·m，关节 3-4 范围 ±18 N·m，关节 5-7 范围 ±8 N·m；8-bit 编码 |
-| `"v111"` | `NeroFW.V111` | ≥ 1.11 | MIT 力矩：全关节范围 ±16 N·m；12-bit 编码；去除 CRC 校验位；motion mode 编码变更 |
+| `"v111"` | `NeroFW.V111` | 1.11 | MIT 力矩：全关节范围 ±16 N·m；12-bit 编码；去除 CRC 校验位；motion mode 编码变更 |
+| `"v112"` | `NeroFW.V112` | ≥ 1.12 | MIT 规则与 `v111` 相同；主臂关节反馈与 Piper 对齐（`0x155` / `0x156` / `0x157` 及第 7 轴 `0x170`）；固件侧不再支持 `set_normal_mode` 对应配置（SDK 侧对该调用做静默兼容，不报错） |
 
 ### 如何选择
 
@@ -2326,9 +2330,10 @@ Nero 系列的固件版本体系与 Piper 系列相互独立。SDK 通过 `creat
 | 您的固件版本 | 应填写的 `firmeware_version` | 常量 |
 | --- | --- | --- |
 | 1.10 及更早 | `"default"`（或不填，默认值） | `NeroFW.DEFAULT` |
-| 1.11 及更新 | `"v111"` | `NeroFW.V111` |
+| 1.11 | `"v111"` | `NeroFW.V111` |
+| 1.12 及更新 | `"v112"` | `NeroFW.V112` |
 
-> **⚠️ 安全警告：** 选错固件版本可能导致 SDK 发送编码错误的力矩指令。特别是将 v111 协议数据发送给旧固件机械臂，可能造成 **危险的非预期运动**。使用前请务必确认您的固件版本。
+> **⚠️ 安全警告：** 选错固件版本可能导致 SDK 发送编码错误的力矩指令。特别是将 v111/v112 协议数据发送给旧固件机械臂，可能造成 **危险的非预期运动**。使用前请务必确认您的固件版本。
 
 **使用示例（推荐 — 使用常量类获得 IDE 自动补全）：**
 
@@ -2372,7 +2377,7 @@ create_agx_arm_config(
 | --- | --- | --- |
 | `robot` | `str` | 机械臂型号。推荐使用 `ArmModel` 常量：`ArmModel.NERO` / `ArmModel.PIPER` / `ArmModel.PIPER_H` / `ArmModel.PIPER_L` / `ArmModel.PIPER_X`（也兼容原始字符串） |
 | `comm` | `str` | 通讯类型，可选值：`"can"`（默认）。注意：`comm` 不是 CAN 通道名，CAN 通道由 `channel` 指定 |
-| `firmeware_version` | `str` | 主控固件版本。推荐使用按机型分类的常量：Nero 系列 → `NeroFW.DEFAULT` / `NeroFW.V111`。选择方法见[固件版本选择](#固件版本选择)。默认 `"default"` |
+| `firmeware_version` | `str` | 主控固件版本。推荐使用按机型分类的常量：Nero 系列 → `NeroFW.DEFAULT` / `NeroFW.V111` / `NeroFW.V112`。选择方法见[固件版本选择](#固件版本选择)。默认 `"default"` |
 
 **可选关键字参数（`**kwargs`）：**
 
@@ -2689,7 +2694,7 @@ get_arm_status(self) -> MessageAbstract[ArmMsgFeedbackStatus] | None
 - `0x03` MOVE C
 - `0x04` MOVE MIT（Nero固件 < 1.11；使用 `NeroFW.DEFAULT`）
 - `0x05` MOVE_CPV
-- `0x06` MOVE MIT（Nero固件 >= 1.11；使用 `NeroFW.V111`）
+- `0x06` MOVE MIT（Nero 固件 ≥ 1.11；使用 `NeroFW.V111` 或 `NeroFW.V112`）
 - `0xFF` 未知
 
 `teach_status`（示教状态）：
@@ -3942,7 +3947,8 @@ move_mit(
 | `default`（≤ v110） | 1-2 | `[-24.0, 24.0]` | 8 | 1.882e-1 |
 | `default`（≤ v110） | 4-6 | `[-18.0, 18.0]` | 8 | 1.412e-1 |
 | `default`（≤ v110） | 5-7 | `[-8.0, 8.0]` | 8 | 6.275e-2 |
-| `v111`（≥ v111） | 1-7 | `[-16.0, 16.0]` | 12 | 7.813e-3 |
+| `v111`（1.11） | 1-7 | `[-16.0, 16.0]` | 12 | 7.813e-3 |
+| `v112`（≥ 1.12） | 1-7 | 与 `v111` 相同 | 12 | 7.813e-3 |
 
 > **注意：** 连续执行该指令会覆盖上一次的目标值。
 >

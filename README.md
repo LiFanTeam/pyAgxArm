@@ -130,8 +130,10 @@ while True:
 
 ### Contact
 
-- GitHub Issues
-- Discord: <https://discord.gg/wrKYTxwDBd>
+- [GitHub Discussions](https://github.com/agilexrobotics/pyAgxArm/discussions) (announcements, Q&A, ideas, and community discussion)
+- [GitHub Issues](https://github.com/agilexrobotics/pyAgxArm/issues) (bugs, feature requests, documentation, and other tracked items)
+- Email: [support@agilex.ai](mailto:support@agilex.ai) (firmware, host software, tool packages, and after-sales support)
+- Discord: <https://discord.gg/wrKYTxwDBd> (real-time chat and community help)
 
 ---
 
@@ -266,5 +268,7 @@ while True:
 
 ## 联系我们
 
-- GitHub：提 issue
-- Discord：<https://discord.gg/wrKYTxwDBd>
+- [GitHub 讨论区](https://github.com/agilexrobotics/pyAgxArm/discussions)（公告、问答、想法交流与社区讨论）
+- [GitHub Issues](https://github.com/agilexrobotics/pyAgxArm/issues)（缺陷、功能建议、文档等问题反馈与跟踪）
+- 邮箱：[support@agilex.ai](mailto:support@agilex.ai)（固件、上位机、工具包及售后支持等）
+- Discord：<https://discord.gg/wrKYTxwDBd>（实时聊天与社区互助）

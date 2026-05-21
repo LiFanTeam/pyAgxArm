@@ -26,16 +26,16 @@
 
 | Topic | Link |
 | --- | --- |
+| GitHub Discussions | [All](https://github.com/agilexrobotics/pyAgxArm/discussions) · [Announcements](https://github.com/agilexrobotics/pyAgxArm/discussions/categories/announcements) · [General](https://github.com/agilexrobotics/pyAgxArm/discussions/categories/general) · [Q&A](https://github.com/agilexrobotics/pyAgxArm/discussions/categories/q-a) |
 | ROS | [agx_arm_ros](https://github.com/agilexrobotics/agx_arm_ros) |
-| CAN module manual | [docs/can_user.md](./docs/can_user.md#can-module-manual) |
 | Piper API | [docs/piper/piper_api.md](./docs/piper/piper_api.md#piper-api-documentation) |
 | Nero API | [docs/nero/nero_api.md](./docs/nero/nero_api.md#nero-api-documentation) |
 | AgxGripper API | [docs/effector/agx_gripper/agx_gripper_api.md](./docs/effector/agx_gripper/agx_gripper_api.md#agxgripper-api-documentation) |
 | Revo2 API | [docs/effector/revo2/revo2_api.md](./docs/effector/revo2/revo2_api.md#revo2-api-documentation) |
+| CAN module manual | [docs/can_user.md](./docs/can_user.md#can-module-manual) |
 | Nero first-time CAN guide | [docs/nero/first_time_user_guide_can.md](./docs/nero/first_time_user_guide_can.md#nero-first-time-user-guide-can) |
 | WSL2 USB-CAN guide | [docs/wsl2_usb_can_guide.md](./docs/wsl2_usb_can_guide.md#wsl2-ubuntu-2204-complete-usb-can-setup-guide) |
 | Ubuntu 24.04 pip guide | [docs/ubuntu_24_04_pip_install.md](./docs/ubuntu_24_04_pip_install.md#ubuntu-2404-pip-installation-guide) |
-| Q&A | [docs/Q&A.md](./docs/Q&A.md#qa) |
 | Changelog | [CHANGELOG.md](./CHANGELOG.md#changelog) |
 | Demos | [pyAgxArm/demos](./pyAgxArm/demos) |
 
@@ -162,16 +162,16 @@ while True:
 
 | 说明 | 文档 |
 | --- | --- |
+| GitHub 讨论区 | [全部](https://github.com/agilexrobotics/pyAgxArm/discussions) · [公告](https://github.com/agilexrobotics/pyAgxArm/discussions/categories/announcements) · [综合](https://github.com/agilexrobotics/pyAgxArm/discussions/categories/general) · [问答](https://github.com/agilexrobotics/pyAgxArm/discussions/categories/q-a) |
 | ROS | [agx_arm_ros](https://github.com/agilexrobotics/agx_arm_ros) |
-| CAN 模块手册 | [docs/can_user.md](./docs/can_user.md#can-模块使用手册) |
 | Piper API | [docs/piper/piper_api.md](./docs/piper/piper_api.md#piper-机械臂-api-使用文档) |
 | Nero API | [docs/nero/nero_api.md](./docs/nero/nero_api.md#nero-机械臂-api-使用文档) |
 | AgxGripper API | [docs/effector/agx_gripper/agx_gripper_api.md](./docs/effector/agx_gripper/agx_gripper_api.md#agxgripper-夹爪-api-使用文档) |
 | Revo2 API | [docs/effector/revo2/revo2_api.md](./docs/effector/revo2/revo2_api.md#revo2-灵巧手-api-使用文档) |
+| CAN 模块手册 | [docs/can_user.md](./docs/can_user.md#can-模块使用手册) |
 | Nero 首次使用 CAN 指南 | [docs/nero/first_time_user_guide_can.md](./docs/nero/first_time_user_guide_can.md#nero-首次使用指南can) |
 | WSL2 USB-CAN 使用指南 | [docs/wsl2_usb_can_guide.md](./docs/wsl2_usb_can_guide.md#wsl2-ubuntu-2204-连接-usb-can-模块完整指南) |
 | Ubuntu 24.04 pip 安装说明 | [docs/ubuntu_24_04_pip_install.md](./docs/ubuntu_24_04_pip_install.md#ubuntu-2404-安装第三方-pip-包的方法) |
-| Q&A | [docs/Q&A.md](./docs/Q&A.md#常见问题) |
 | 更新日志 | [CHANGELOG.md](./CHANGELOG.md#更新日志) |
 | 示例代码 | [pyAgxArm/demos](./pyAgxArm/demos) |
 

@@ -84,18 +84,19 @@ def test_nero_driver_set_normal_mode_and_extended_motion_l2():
         arm.connect()
         arm.set_normal_mode()
 
-        pose = [-0.45, -0.0, 0.45, -1.5708, 0.0, -3.14159]
-        mid = [-0.45, 0.0, 0.5, -1.5708, 0.0, -3.14159]
-        end = [-0.45, 0.2, 0.45, -1.5708, 0.0, -3.14159]
+        pose = [-0.4, -0.0, 0.4, -1.5708, 0.0, -3.14159]
+        start_pose = [-0.4, -0.2, 0.4, -1.5708, 0.0, -3.14159]
+        mid_pose = [-0.4, 0.0, 0.45, -1.5708, 0.0, -3.14159]
+        end_pose = [-0.4, 0.2, 0.4, -1.5708, 0.0, -3.14159]
 
         arm.set_motion_mode(arm.OPTIONS.MOTION_MODE.P)
         arm.move_p(pose)
 
         arm.set_motion_mode(arm.OPTIONS.MOTION_MODE.L)
-        arm.move_l(pose)
+        arm.move_l(start_pose)
 
         arm.set_motion_mode(arm.OPTIONS.MOTION_MODE.C)
-        arm.move_c(pose, mid, end)
+        arm.move_c(start_pose, mid_pose, end_pose)
 
         arm.electronic_emergency_stop()
         arm.reset()
@@ -191,7 +192,6 @@ def test_nero_proprietary_apis_l2():
         assert arm.get_crash_protection_rating(timeout=1.0, min_interval=0.0) is not None
 
         # set_* 系列
-        arm.calibrate_joint(1)
         arm.clear_joint_error(1)
         assert arm.set_joint_angle_vel_limits(1, timeout=1.0)
         assert arm.set_joint_acc_limits(1, timeout=1.0)
@@ -205,12 +205,26 @@ def test_nero_proprietary_apis_l2():
         device.stop()
 
 
+def test_nero_calibrate_joint_v111():
+    channel = new_virtual_channel("ci_nero_cal")
+    device = NeroCanSlave(channel=channel)
+    device.start()
+    try:
+        arm = _make_nero_arm(NeroFW.V111, channel)
+        arm.connect()
+        arm.calibrate_joint(1)
+        arm.disconnect()
+        assert wait_until(lambda: len(device.host_frames) >= 1)
+    finally:
+        device.stop()
+
+
 def test_nero_driver_virtual_can_cpv_joint7_and_round_trip():
     channel = new_virtual_channel("ci_nero_cpv")
     device = NeroCanSlave(channel=channel)
     device.start()
     try:
-        arm = _make_nero_arm(NeroFW.DEFAULT, channel)
+        arm = _make_nero_arm(NeroFW.V112, channel)
         arm.connect()
         arm.set_motion_mode(arm.OPTIONS.MOTION_MODE.CPV)
         assert wait_until(
@@ -235,9 +249,8 @@ def test_nero_driver_virtual_can_cpv_joint7_and_round_trip():
         assert got7 is not None
         assert abs(got7 - pos7) < 1e-4
 
-        arm.move_cpv_vel(1, 0.01)
-        g1 = arm.get_cpv_vel(1, timeout=1.0, min_interval=0.0)
-        assert g1 is not None and abs(g1 - 0.01) < 1e-6
+        arm.move_cpv_vel(6, 0.025)
+        assert arm.get_cpv_vel(6, timeout=1.0, min_interval=0.0) is not None
 
         assert arm.set_cpv_cv(4, 0.5, timeout=1.0)
         cv = arm.get_cpv_cv(4, timeout=1.0, min_interval=0.0)
@@ -262,7 +275,7 @@ def test_nero_driver_virtual_can_cpv_timeout_when_slave_mutes_cpv():
     device = NeroCanSlave(channel=channel)
     device.start()
     try:
-        arm = _make_nero_arm(NeroFW.DEFAULT, channel)
+        arm = _make_nero_arm(NeroFW.V112, channel)
         arm.connect()
         arm.set_motion_mode(arm.OPTIONS.MOTION_MODE.CPV)
         device._cpv_reply_enabled = False
@@ -278,7 +291,7 @@ def test_nero_driver_virtual_can_cpv_each_public_api_once():
     device = NeroCanSlave(channel=channel)
     device.start()
     try:
-        arm = _make_nero_arm(NeroFW.DEFAULT, channel)
+        arm = _make_nero_arm(NeroFW.V112, channel)
         arm.connect()
         arm.set_motion_mode("cpv")
         to = 1.0

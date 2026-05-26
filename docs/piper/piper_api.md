@@ -7,8 +7,6 @@
 - [Switch to 中文](#piper-机械臂-api-使用文档)
 - [Import Module](#import-module)
 - [Firmware Version](#firmware-version)
-  - [Version List](#version-list)
-  - [How to Choose](#how-to-choose)
 - [Create Instance and Connect](#create-instance-and-connect)
   - [Create Configuration — create_agx_arm_config()](#create-configuration--create_agx_arm_config)
   - [Create Arm Driver Instance — AgxArmFactory.create_arm()](#create-arm-driver-instance--agxarmfactorycreate_arm)
@@ -99,35 +97,25 @@ from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, PiperFW
 
 ## Firmware Version
 
-Piper series robotic arms may ship with different firmware versions. Some versions introduce protocol-level changes that affect parameter ranges, encoding precision, and internal scaling. The SDK uses the `firmeware_version` parameter in `create_agx_arm_config()` to select the matching driver, ensuring API behavior is consistent with the firmware running on the arm. The firmware version number used here is the software version number, such as `"S-V1.8-8"`.
+Piper firmware versioning is independent from Nero. The SDK uses `firmeware_version` in `create_agx_arm_config()` to select the matching driver (software version strings such as `"S-V1.8-8"`).
 
-### Version List
+Check the arm firmware with [get_firmware()](#get-firmware-info--get_firmware) (format **S-VX.X-X**), then:
 
-| SDK Version | Constant | Firmware Range | Key Differences |
-| --- | --- | --- | --- |
-| `"default"` | `PiperFW.DEFAULT` | ≤ S-V1.8-2 | MIT torque: joints 1-3 input range ±32 N·m, joints 4-6 range ±8 N·m; 8-bit encoding |
-| `"v183"` | `PiperFW.V183` | S-V1.8-3 ~ S-V1.8-7 | MIT torque: all joints range ±8 N·m; 8-bit encoding |
-| `"v188"` | `PiperFW.V188` | ≥ S-V1.8-8 | MIT torque: all joints range ±16 N·m; 12-bit encoding; CRC checksum removed; motion mode code changed |
-
-### How to Choose
-
-Check the firmware version on the arm's main controller, you can use the [get_firmware()](#get-firmware-info--get_firmware) method (format: **S-VX.X-X**), then pick the corresponding SDK version:
-
-| Your Firmware | `firmeware_version` to Use | Constant |
+| Your firmware | `firmeware_version` | Constant |
 | --- | --- | --- |
-| S-V1.8-2 or earlier | `"default"` (or omit the parameter) | `PiperFW.DEFAULT` |
-| S-V1.8-3 ~ S-V1.8-7 | `"v183"` | `PiperFW.V183` |
 | S-V1.8-8 or later | `"v188"` | `PiperFW.V188` |
+| S-V1.8-3 ~ S-V1.8-7 | `"v183"` | `PiperFW.V183` |
+| S-V1.8-2 or earlier | `"default"` (or omit) | `PiperFW.DEFAULT` |
 
-> **⚠️ Safety Warning:** Using the wrong firmware version may cause the SDK to send incorrectly encoded torque commands. In particular, sending v188 protocol data to an older firmware arm may result in **dangerous unexpected motion**. Always verify your firmware version before choosing the SDK version.
+> Version evolution, API availability, and behavioral differences: [Piper Firmware Reference](firmware_reference.md#piper-firmware-reference).
 
 **Usage Example (recommended — use constants for IDE auto-complete):**
 
 ```python
 from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, PiperFW
 
-# Firmware is S-V1.8-5 → falls in v183 ~ v187, use PiperFW.V183
-cfg = create_agx_arm_config(robot=ArmModel.PIPER, firmeware_version=PiperFW.V183, channel="can0")
+# Firmware is S-V1.8-2, use PiperFW.DEFAULT
+cfg = create_agx_arm_config(robot=ArmModel.PIPER, firmeware_version=PiperFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 robot.connect()
 ```
@@ -135,7 +123,7 @@ robot.connect()
 Raw strings are also accepted (backward-compatible):
 
 ```python
-cfg = create_agx_arm_config(robot="piper", firmeware_version="v183", channel="can0")
+cfg = create_agx_arm_config(robot="piper", firmeware_version="default", channel="can0")
 ```
 
 ---
@@ -1939,18 +1927,9 @@ move_mit(
 | `kp` | `float` | `[0.0, 500.0]` | — | `10.0` | 1.221e-1 |
 | `kd` | `float` | `[-5.0, 5.0]` | — | `0.8` | 2.442e-3 |
 
-**`t_ff` parameter differs by firmware version:**
-
-| Version | Joint | `t_ff` Range (N·m) | Encoding Bits | Precision (N·m) |
-| --- | --- | --- | --- | --- |
-| `default` (≤ v182) | 1-3 | `[-32.0, 32.0]` | 8 | 2.510e-1 |
-| `default` (≤ v182) | 4-6 | `[-8.0, 8.0]` | 8 | 6.275e-2 |
-| `v183` (v183 ~ v187) | 1-6 | `[-8.0, 8.0]` | 8 | 6.275e-2 |
-| `v188` (≥ v188) | 1-6 | `[-16.0, 16.0]` | 12 | 7.813e-3 |
-
 > **Note:** Consecutive execution of this command will overwrite the previous target value.
 >
-> The correct firmware version must be set via `create_agx_arm_config(firmeware_version=...)`. See [Firmware Version](#firmware-version) for details.
+> **`t_ff`** ranges and encoding differ by firmware — see [MIT parameters by version](firmware_reference.md#mit-move_mit-parameters-by-version).
 
 **Usage Example:**
 
@@ -2706,8 +2685,6 @@ print("disable periodic feedback success =", success)
 - [切换到 English](#piper-api-documentation)
 - [导入模块](#导入模块)
 - [固件版本选择](#固件版本选择)
-  - [版本列表](#版本列表)
-  - [如何选择](#如何选择)
 - [创建实例并连接](#创建实例并连接)
   - [创建配置参数 — create_agx_arm_config()](#创建配置参数--create_agx_arm_config)
   - [创建机械臂 Driver 实例 — AgxArmFactory.create_arm()](#创建机械臂-driver-实例--agxarmfactorycreate_arm)
@@ -2798,35 +2775,25 @@ from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, PiperFW
 
 ## 固件版本选择
 
-Piper 系列机械臂可能搭载不同固件版本，部分版本引入了协议级别的改动，会影响参数范围、编码精度和内部缩放逻辑。SDK 通过 `create_agx_arm_config()` 的 `firmeware_version` 参数选择匹配的驱动，确保 API 行为与机械臂实际运行的固件一致，这里的固件版本采用的是软件的版本号，例如 `"S-V1.8-8"`。
+Piper 与 Nero 固件体系相互独立。SDK 通过 `create_agx_arm_config()` 的 `firmeware_version` 选择匹配驱动（软件版本号如 `"S-V1.8-8"`）。
 
-### 版本列表
+通过 [get_firmware()](#读取固件信息--get_firmware) 读取主控固件（格式 **S-VX.X-X**），按下表选择：
 
-| SDK 版本 | 常量 | 固件范围 | 主要差异 |
-| --- | --- | --- | --- |
-| `"default"` | `PiperFW.DEFAULT` | ≤ S-V1.8-2 | MIT 力矩：关节 1-3 输入范围 ±32 N·m，关节 4-6 范围 ±8 N·m；8-bit 编码 |
-| `"v183"` | `PiperFW.V183` | S-V1.8-3 ~ S-V1.8-7 | MIT 力矩：全关节范围 ±8 N·m；8-bit 编码 |
-| `"v188"` | `PiperFW.V188` | ≥ S-V1.8-8 | MIT 力矩：全关节范围 ±16 N·m；12-bit 编码；去除 CRC 校验位；motion mode 编码变更 |
-
-### 如何选择
-
-查看机械臂主控上的固件版本号，可通过[get_firmware()](#读取固件信息--get_firmware)方法获取（格式：**S-VX.X-X**），根据下表选择对应的 SDK 版本：
-
-| 您的固件版本 | 应填写的 `firmeware_version` | 常量 |
+| 固件版本 | `firmeware_version` | 常量 |
 | --- | --- | --- |
-| S-V1.8-2 及更早 | `"default"`（或不填，默认值） | `PiperFW.DEFAULT` |
-| S-V1.8-3 ~ S-V1.8-7 | `"v183"` | `PiperFW.V183` |
 | S-V1.8-8 及更新 | `"v188"` | `PiperFW.V188` |
+| S-V1.8-3 ~ S-V1.8-7 | `"v183"` | `PiperFW.V183` |
+| S-V1.8-2 及更早 | `"default"`（或不填） | `PiperFW.DEFAULT` |
 
-> **⚠️ 安全警告：** 选错固件版本可能导致 SDK 发送编码错误的力矩指令。特别是将 v188 协议数据发送给旧固件机械臂，可能造成 **危险的非预期运动**。使用前请务必确认您的固件版本。
+> 版本演进、API 可用性与行为差异详见 [Piper 固件参考](firmware_reference.md#piper-固件参考)。
 
 **使用示例（推荐 — 使用常量类获得 IDE 自动补全）：**
 
 ```python
 from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, PiperFW
 
-# 固件为 S-V1.8-5 → 处于 v183 ~ v187 之间，选择 PiperFW.V183
-cfg = create_agx_arm_config(robot=ArmModel.PIPER, firmeware_version=PiperFW.V183, channel="can0")
+# 固件为 S-V1.8-2，选择 PiperFW.DEFAULT
+cfg = create_agx_arm_config(robot=ArmModel.PIPER, firmeware_version=PiperFW.DEFAULT, channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 robot.connect()
 ```
@@ -2834,7 +2801,7 @@ robot.connect()
 也兼容原始字符串写法：
 
 ```python
-cfg = create_agx_arm_config(robot="piper", firmeware_version="v183", channel="can0")
+cfg = create_agx_arm_config(robot="piper", firmeware_version="default", channel="can0")
 ```
 
 ---
@@ -4640,18 +4607,9 @@ move_mit(
 | `kp` | `float` | `[0.0, 500.0]` | — | `10.0` | 1.221e-1 |
 | `kd` | `float` | `[-5.0, 5.0]` | — | `0.8` | 2.442e-3 |
 
-**`t_ff` 参数因固件版本而异：**
-
-| 版本 | 关节 | `t_ff` 范围 (N·m) | 编码位数 | 精度 (N·m) |
-| --- | --- | --- | --- | --- |
-| `default`（≤ v182） | 1-3 | `[-32.0, 32.0]` | 8 | 2.510e-1 |
-| `default`（≤ v182） | 4-6 | `[-8.0, 8.0]` | 8 | 6.275e-2 |
-| `v183`（v183 ~ v187） | 1-6 | `[-8.0, 8.0]` | 8 | 6.275e-2 |
-| `v188`（≥ v188） | 1-6 | `[-16.0, 16.0]` | 12 | 7.813e-3 |
-
 > **注意：** 连续执行该指令会覆盖上一次的目标值。
 >
-> 必须通过 `create_agx_arm_config(firmeware_version=...)` 正确设置固件版本。详见[固件版本选择](#固件版本选择)。
+> **`t_ff`** 量程与编码因固件而异 — 见[固件参考 · MIT 分版本参数](firmware_reference.md#mitmove_mit分版本参数)。
 
 **使用示例：**
 

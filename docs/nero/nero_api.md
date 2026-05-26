@@ -86,27 +86,17 @@ from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, NeroFW
 
 ## Firmware Version
 
-Nero series firmware versioning is independent from the Piper series. The SDK uses the `firmeware_version` parameter in `create_agx_arm_config()` to select the matching driver. The firmware version number used here is the software version number, such as `"1.11"` or `"1.12"`.
+Nero firmware versioning is independent from Piper. The SDK uses `firmeware_version` in `create_agx_arm_config()` to select the matching driver (software version strings such as `"1.11"`, `"1.12"`).
 
-### Version List
+Check the arm firmware with [get_firmware()](#get-firmware-info--get_firmware) (format **X.XX**), then:
 
-| SDK Version | Constant | Firmware Range | Key Differences |
-| --- | --- | --- | --- |
-| `"default"` | `NeroFW.DEFAULT` | ≤ 1.10 | MIT torque: joints 1-2 input range ±24 N·m, joints 3-4 range ±18 N·m, joints 5-7 range ±8 N·m; 8-bit encoding |
-| `"v111"` | `NeroFW.V111` | 1.11 | MIT torque: all joints range ±16 N·m; 12-bit encoding; CRC checksum removed; motion mode code changed |
-| `"v112"` | `NeroFW.V112` | ≥ 1.12 | Same MIT rules as `v111`; leader joint feedback uses Piper-style frames `0x155` / `0x156` / `0x157` and `0x170` (joint 7); `set_normal_mode()` is a no-op at firmware level (SDK keeps the call as silent compatibility) |
-
-### How to Choose
-
-Check the firmware version on the arm's main controller, you can use the [get_firmware()](#get-firmware-info--get_firmware) method (format: **X.XX**), then pick the corresponding SDK version:
-
-| Your Firmware | `firmeware_version` to Use | Constant |
+| Your firmware | `firmeware_version` | Constant |
 | --- | --- | --- |
-| 1.10 or earlier | `"default"` (or omit the parameter) | `NeroFW.DEFAULT` |
-| 1.11 | `"v111"` | `NeroFW.V111` |
 | 1.12 or later | `"v112"` | `NeroFW.V112` |
+| 1.11 | `"v111"` | `NeroFW.V111` |
+| 1.10 or earlier | `"default"` (or omit) | `NeroFW.DEFAULT` |
 
-> **⚠️ Safety Warning:** Using the wrong firmware version may cause the SDK to send incorrectly encoded torque commands. In particular, sending v111/v112 protocol data to an older firmware arm may result in **dangerous unexpected motion**. Always verify your firmware version before choosing the SDK version.
+> Version evolution, API availability, and behavioral differences: [Nero Firmware Reference](firmware_reference.md#nero-firmware-reference).
 
 **Usage Example (recommended — use constants for IDE auto-complete):**
 
@@ -1770,19 +1760,9 @@ move_mit(
 | `kp` | `float` | `[0.0, 500.0]` | — | `10.0` | 1.221e-1 |
 | `kd` | `float` | `[-5.0, 5.0]` | — | `0.8` | 2.442e-3 |
 
-**`t_ff` parameter differs by firmware version:**
-
-| Version | Joint | `t_ff` Range (N·m) | Encoding Bits | Precision (N·m) |
-| --- | --- | --- | --- | --- |
-| `default`（≤ v110） | 1-2 | `[-24.0, 24.0]` | 8 | 1.882e-1 |
-| `default`（≤ v110） | 3-4 | `[-16.0, 16.0]` | 8 | 1.255e-1 |
-| `default`（≤ v110） | 5-7 | `[-8.0, 8.0]` | 8 | 6.275e-2 |
-| `v111`（1.11） | 1-7 | `[-16.0, 16.0]` | 12 | 7.813e-3 |
-| `v112`（≥ 1.12） | 1-7 | same as `v111` | 12 | 7.813e-3 |
-
 > **Note:** Consecutive execution of this command will overwrite the previous target value.
 >
-> The correct firmware version must be set via `create_agx_arm_config(firmeware_version=...)`. See [Firmware Version](#firmware-version) for details.
+> **`t_ff`** ranges and encoding differ by firmware — see [MIT parameters by version](firmware_reference.md#mit-move_mit-parameters-by-version).
 
 **Usage Example:**
 
@@ -1811,6 +1791,8 @@ for i in range(1, robot.joint_nums + 1):
 ---
 
 ## CPV Motion and Parameters
+
+> **Firmware requirement:** `NeroFW.V112+` (firmware **≥ 1.12**).
 
 CPV mode provides direct joint **position / velocity command** and parameter read/write APIs.  
 Calling CPV APIs will internally switch to CPV motion mode when needed (`set_motion_mode(MOVE_CPV)`).
@@ -2062,6 +2044,8 @@ if rating is not None:
 
 ### Calibrate Joint Zero Point — `calibrate_joint()`
 
+> **Firmware requirement:** `NeroFW.V111+` (firmware **≥ 1.11**).
+
 **Description:** Set the current position as the joint zero point.
 
 **Function Definition:**
@@ -2081,7 +2065,7 @@ calibrate_joint(self, joint_index: Literal[1, 2, 3, 4, 5, 6, 7, 255] = 255) -> N
 ```python
 from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, NeroFW
 
-cfg = create_agx_arm_config(robot=ArmModel.NERO, firmeware_version=NeroFW.DEFAULT, channel="can0")
+cfg = create_agx_arm_config(robot=ArmModel.NERO, firmeware_version=NeroFW.V111, channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 robot.connect()
 
@@ -2372,27 +2356,17 @@ from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, NeroFW
 
 ## 固件版本选择
 
-Nero 系列的固件版本体系与 Piper 系列相互独立。SDK 通过 `create_agx_arm_config()` 的 `firmeware_version` 参数选择匹配的驱动，这里的固件版本采用的是软件的版本号，例如 `"1.11"`、`"1.12"`。
+Nero 与 Piper 固件体系相互独立。SDK 通过 `create_agx_arm_config()` 的 `firmeware_version` 选择匹配驱动（软件版本号如 `"1.12"`）。
 
-### 版本列表
+通过 [get_firmware()](#读取固件信息--get_firmware) 读取主控固件（格式 **X.XX**），按下表选择：
 
-| SDK 版本 | 常量 | 固件范围 | 主要差异 |
-| --- | --- | --- | --- |
-| `"default"` | `NeroFW.DEFAULT` | ≤ 1.10 | MIT 力矩：关节 1-2 输入范围 ±24 N·m，关节 3-4 范围 ±18 N·m，关节 5-7 范围 ±8 N·m；8-bit 编码 |
-| `"v111"` | `NeroFW.V111` | 1.11 | MIT 力矩：全关节范围 ±16 N·m；12-bit 编码；去除 CRC 校验位；motion mode 编码变更 |
-| `"v112"` | `NeroFW.V112` | ≥ 1.12 | MIT 规则与 `v111` 相同；主臂关节反馈与 Piper 对齐（`0x155` / `0x156` / `0x157` 及第 7 轴 `0x170`）；固件侧不再支持 `set_normal_mode` 对应配置（SDK 侧对该调用做静默兼容，不报错） |
-
-### 如何选择
-
-查看机械臂主控上的固件版本号，可通过[get_firmware()](#读取固件信息--get_firmware)方法获取（格式：**X.XX**），根据下表选择对应的 SDK 版本：
-
-| 您的固件版本 | 应填写的 `firmeware_version` | 常量 |
+| 固件版本 | `firmeware_version` | 常量 |
 | --- | --- | --- |
-| 1.10 及更早 | `"default"`（或不填，默认值） | `NeroFW.DEFAULT` |
-| 1.11 | `"v111"` | `NeroFW.V111` |
 | 1.12 及更新 | `"v112"` | `NeroFW.V112` |
+| 1.11 | `"v111"` | `NeroFW.V111` |
+| 1.10 及更早 | `"default"`（或不填） | `NeroFW.DEFAULT` |
 
-> **⚠️ 安全警告：** 选错固件版本可能导致 SDK 发送编码错误的力矩指令。特别是将 v111/v112 协议数据发送给旧固件机械臂，可能造成 **危险的非预期运动**。使用前请务必确认您的固件版本。
+> 版本演进、API 可用性与行为差异详见 [Nero 固件参考](firmware_reference.md#nero-固件参考)。
 
 **使用示例（推荐 — 使用常量类获得 IDE 自动补全）：**
 
@@ -4054,19 +4028,9 @@ move_mit(
 | `kp` | `float` | `[0.0, 500.0]` | — | `10.0` | 1.221e-1 |
 | `kd` | `float` | `[-5.0, 5.0]` | — | `0.8` | 2.442e-3 |
 
-**`t_ff` 参数因固件版本而异：**
-
-| 版本 | 关节 | `t_ff` 范围 (N·m) | 编码位数 | 精度 (N·m) |
-| --- | --- | --- | --- | --- |
-| `default`（≤ v110） | 1-2 | `[-24.0, 24.0]` | 8 | 1.882e-1 |
-| `default`（≤ v110） | 3-4 | `[-16.0, 16.0]` | 8 | 1.255e-1 |
-| `default`（≤ v110） | 5-7 | `[-8.0, 8.0]` | 8 | 6.275e-2 |
-| `v111`（1.11） | 1-7 | `[-16.0, 16.0]` | 12 | 7.813e-3 |
-| `v112`（≥ 1.12） | 1-7 | 与 `v111` 相同 | 12 | 7.813e-3 |
-
 > **注意：** 连续执行该指令会覆盖上一次的目标值。
 >
-> 必须通过 `create_agx_arm_config(firmeware_version=...)` 正确设置固件版本。详见[固件版本选择](#固件版本选择)。
+> **`t_ff`** 量程与编码因固件而异 — 见[固件参考 · MIT 分版本参数](firmware_reference.md#mitmove_mit分版本参数)。
 
 **使用示例：**
 
@@ -4095,6 +4059,8 @@ for i in range(1, robot.joint_nums + 1):
 ---
 
 ## CPV 运动与参数
+
+> **固件要求：** `NeroFW.V112+`（固件 **≥ 1.12**）。
 
 CPV 模式提供了关节 **位置/速度指令** 与参数读写接口。  
 调用 CPV 接口时，SDK 会在需要时自动切换到 `MOVE_CPV` 运动模式。
@@ -4346,6 +4312,8 @@ if rating is not None:
 
 ### 关节零点校准 — `calibrate_joint()`
 
+> **固件要求：** `NeroFW.V111+`（固件 **≥ 1.11**）。
+
 **功能说明：** 将当前位置设置为关节零点。
 
 **函数定义：**
@@ -4365,7 +4333,7 @@ calibrate_joint(self, joint_index: Literal[1, 2, 3, 4, 5, 6, 7, 255] = 255) -> N
 ```python
 from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, NeroFW
 
-cfg = create_agx_arm_config(robot=ArmModel.NERO, firmeware_version=NeroFW.DEFAULT, channel="can0")
+cfg = create_agx_arm_config(robot=ArmModel.NERO, firmeware_version=NeroFW.V111, channel="can0")
 robot = AgxArmFactory.create_arm(cfg)
 robot.connect()
 

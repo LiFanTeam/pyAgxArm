@@ -36,6 +36,30 @@ def test_load_class_routes_to_expected_driver_module(robot, fw, expected_module)
     assert driver_cls.__module__ == expected_module
 
 
+@pytest.mark.parametrize(
+    "fw,expect_cpv",
+    [
+        (NeroFW.DEFAULT, False),
+        (NeroFW.V111, False),
+        (NeroFW.V112, True),
+    ],
+)
+def test_nero_motion_mode_options_cpv_only_on_v112(fw, expect_cpv):
+    channel = new_virtual_channel("ci_nero_opts")
+    cfg = create_agx_arm_config(
+        robot=ArmModel.NERO,
+        firmeware_version=fw,
+        interface="virtual",
+        channel=channel,
+    )
+    arm = AgxArmFactory.create_arm(cfg)
+    modes = arm.OPTIONS.MOTION_MODE.value_list()
+    assert ("cpv" in modes) is expect_cpv
+    if not expect_cpv:
+        with pytest.raises(ValueError):
+            arm.set_motion_mode("cpv")
+
+
 @pytest.mark.parametrize("robot,fw", [(c[0], c[1]) for c in _LOAD_CLASS_CASES])
 def test_create_arm_connect_disconnect_smoke(robot, fw):
     channel = new_virtual_channel("ci_factory_smoke")

@@ -223,7 +223,11 @@ class NeroCanSlave:
         ji = aid - 0x180
         if mode_byte == 0x77:
             self._cpv_store[(ji, type_str)] = raw
-            out_raw = raw
+            # Nero: set-parameter write ack uses 172 (0xAC); po/sp move cmds echo raw.
+            if type_str in ("ac", "dc", "vv", "pp", "kp", "ki"):
+                out_raw = 172
+            else:
+                out_raw = raw
         else:
             out_raw = self._cpv_store.get((ji, type_str), 0)
         payload = pl.pack_cpv_ack(type_str, out_raw)

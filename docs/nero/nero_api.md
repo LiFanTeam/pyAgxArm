@@ -1000,7 +1000,7 @@ robot.connect()
 robot.set_tcp_offset([0.0, 0.0, 0.10, 0.0, 0.0, 0.0])
 
 # Directly specify a flange pose
-tcp_pose = robot.get_flange2tcp_pose([-0.45, -0.0, 0.45, -1.5708, 0.0, -3.14159])
+tcp_pose = robot.get_flange2tcp_pose([-0.4, -0.0, 0.4, -1.5708, 0.0, -3.14159])
 print("tcp_pose =", tcp_pose)
 
 # Obtain from current pose; result is the same as get_tcp_pose()
@@ -1041,7 +1041,7 @@ robot.connect()
 
 robot.set_tcp_offset([0.0, 0.0, 0.10, 0.0, 0.0, 0.0])
 
-target_tcp_pose = [-0.45, -0.0, 0.45, -1.5708, 0.0, -3.14159]
+target_tcp_pose = [-0.4, -0.0, 0.4, -1.5708, 0.0, -3.14159]
 target_flange_pose = robot.get_tcp2flange_pose(target_tcp_pose)
 print("target_flange_pose =", target_flange_pose)
 
@@ -1605,7 +1605,7 @@ while not robot.enable():
     time.sleep(0.01)
 
 robot.set_speed_percent(100)
-robot.move_p([-0.45, -0.0, 0.45, -1.5708, 0.0, -3.14159])
+robot.move_p([-0.4, -0.0, 0.4, -1.5708, 0.0, -3.14159])
 
 # Wait for motion to finish (with 5s timeout)
 time.sleep(0.5)
@@ -1655,7 +1655,7 @@ while not robot.enable():
     time.sleep(0.01)
 
 robot.set_speed_percent(100)
-robot.move_l([-0.45, -0.2, 0.45, -1.5708, 0.0, -3.14159])
+robot.move_l([-0.4, -0.2, 0.4, -1.5708, 0.0, -3.14159])
 
 # Wait for motion to finish (with 5s timeout)
 time.sleep(0.5)
@@ -1705,9 +1705,9 @@ while not robot.enable():
     time.sleep(0.01)
 
 robot.set_speed_percent(100)
-sp = [-0.45, -0.2, 0.45, -1.5708, 0.0, -3.14159]
-mp = [-0.45, 0.0, 0.5, -1.5708, 0.0, -3.14159]
-ep = [-0.45, 0.2, 0.45, -1.5708, 0.0, -3.14159]
+sp = [-0.4, -0.2, 0.4, -1.5708, 0.0, -3.14159]
+mp = [-0.4, 0.0, 0.45, -1.5708, 0.0, -3.14159]
+ep = [-0.4, 0.2, 0.4, -1.5708, 0.0, -3.14159]
 robot.move_c(sp, mp, ep)
 
 # Wait for motion to finish (with 5s timeout)
@@ -1775,7 +1775,7 @@ move_mit(
 | Version | Joint | `t_ff` Range (N·m) | Encoding Bits | Precision (N·m) |
 | --- | --- | --- | --- | --- |
 | `default`（≤ v110） | 1-2 | `[-24.0, 24.0]` | 8 | 1.882e-1 |
-| `default`（≤ v110） | 4-6 | `[-18.0, 18.0]` | 8 | 1.412e-1 |
+| `default`（≤ v110） | 3-4 | `[-16.0, 16.0]` | 8 | 1.255e-1 |
 | `default`（≤ v110） | 5-7 | `[-8.0, 8.0]` | 8 | 6.275e-2 |
 | `v111`（1.11） | 1-7 | `[-16.0, 16.0]` | 12 | 7.813e-3 |
 | `v112`（≥ 1.12） | 1-7 | same as `v111` | 12 | 7.813e-3 |
@@ -3284,7 +3284,7 @@ robot.connect()
 robot.set_tcp_offset([0.0, 0.0, 0.10, 0.0, 0.0, 0.0])
 
 # 直接指定法兰位姿
-tcp_pose = robot.get_flange2tcp_pose([-0.45, -0.0, 0.45, -1.5708, 0.0, -3.14159])
+tcp_pose = robot.get_flange2tcp_pose([-0.4, -0.0, 0.4, -1.5708, 0.0, -3.14159])
 print("tcp_pose =", tcp_pose)
 
 # 从当前位姿获取，结果与 get_tcp_pose() 得到的 pose 相同
@@ -3325,7 +3325,7 @@ robot.connect()
 
 robot.set_tcp_offset([0.0, 0.0, 0.10, 0.0, 0.0, 0.0])
 
-target_tcp_pose = [-0.45, -0.0, 0.45, -1.5708, 0.0, -3.14159]
+target_tcp_pose = [-0.4, -0.0, 0.4, -1.5708, 0.0, -3.14159]
 target_flange_pose = robot.get_tcp2flange_pose(target_tcp_pose)
 print("target_flange_pose =", target_flange_pose)
 
@@ -3889,7 +3889,7 @@ while not robot.enable():
     time.sleep(0.01)
 
 robot.set_speed_percent(100)
-robot.move_p([-0.45, -0.0, 0.45, -1.5708, 0.0, -3.14159])
+robot.move_p([-0.4, -0.0, 0.4, -1.5708, 0.0, -3.14159])
 
 # 等待运动结束（带 5s 超时）
 time.sleep(0.5)
@@ -3939,7 +3939,7 @@ while not robot.enable():
     time.sleep(0.01)
 
 robot.set_speed_percent(100)
-robot.move_l([-0.45, -0.2, 0.45, -1.5708, 0.0, -3.14159])
+robot.move_l([-0.4, -0.2, 0.4, -1.5708, 0.0, -3.14159])
 
 # 等待运动结束（带 5s 超时）
 time.sleep(0.5)
@@ -3989,9 +3989,9 @@ while not robot.enable():
     time.sleep(0.01)
 
 robot.set_speed_percent(100)
-sp = [-0.45, -0.2, 0.45, -1.5708, 0.0, -3.14159]
-mp = [-0.45, 0.0, 0.5, -1.5708, 0.0, -3.14159]
-ep = [-0.45, 0.2, 0.45, -1.5708, 0.0, -3.14159]
+sp = [-0.4, -0.2, 0.4, -1.5708, 0.0, -3.14159]
+mp = [-0.4, 0.0, 0.45, -1.5708, 0.0, -3.14159]
+ep = [-0.4, 0.2, 0.4, -1.5708, 0.0, -3.14159]
 robot.move_c(sp, mp, ep)
 
 # 等待运动结束（带 5s 超时）
@@ -4059,7 +4059,7 @@ move_mit(
 | 版本 | 关节 | `t_ff` 范围 (N·m) | 编码位数 | 精度 (N·m) |
 | --- | --- | --- | --- | --- |
 | `default`（≤ v110） | 1-2 | `[-24.0, 24.0]` | 8 | 1.882e-1 |
-| `default`（≤ v110） | 4-6 | `[-18.0, 18.0]` | 8 | 1.412e-1 |
+| `default`（≤ v110） | 3-4 | `[-16.0, 16.0]` | 8 | 1.255e-1 |
 | `default`（≤ v110） | 5-7 | `[-8.0, 8.0]` | 8 | 6.275e-2 |
 | `v111`（1.11） | 1-7 | `[-16.0, 16.0]` | 12 | 7.813e-3 |
 | `v112`（≥ 1.12） | 1-7 | 与 `v111` 相同 | 12 | 7.813e-3 |

@@ -12,7 +12,7 @@ Read top to bottom: each row is **what changed vs the previous SDK driver**.
 
 | SDK driver | Constant | Arm firmware | Changes vs previous driver |
 | --- | --- | --- | --- |
-| `v112` | `NeroFW.V112` | ≥ 1.12 | **New:** full CPV APIs (joints 1–7, CAN `0x181`–`0x187`); `set_motion_mode('cpv')`. **Changed:** `get_leader_joint_angles` uses bundled CAN `0x155` / `0x156` / `0x157` + `0x170`. **Compat:** `set_normal_mode()` is SDK no-op (firmware removed; call does not error). Inherits `v111` (`calibrate_joint`, 12-bit MIT, pose fix). |
+| `v112` | `NeroFW.V112` | ≥ 1.12 | **New:** `get_ik_joint_angles` (IK feedback CAN `0x2AA` / `0x2AB` / `0x2AC` / `0x2AD`; after `move_p` / `move_l` / `move_c`). **New:** full CPV APIs (joints 1–7, CAN `0x181`–`0x187`); `set_motion_mode('cpv')`. **Changed:** `get_leader_joint_angles` uses bundled CAN `0x155` / `0x156` / `0x157` + `0x170`. **Compat:** `set_normal_mode()` is SDK no-op (firmware removed; call does not error). Inherits `v111` (`calibrate_joint`, 12-bit MIT, pose fix). |
 | `v111` | `NeroFW.V111` | 1.11 | **New:** `calibrate_joint`. **Changed:** `move_mit` 12-bit `t_ff` (±16 N·m all joints); MIT frame without CRC; motion mode encoding; `move_p` / `get_flange_pose` without 1.10 pose workaround; `get_motor_states` only forces `velocity = 0` (no `current` flip). |
 | `default` | `NeroFW.DEFAULT` | ≤ 1.10 | **Baseline:** 8-bit `t_ff`; per-joint MIT torque ranges; 1.10 pose workaround on `move_p` / `get_flange_pose`; `get_motor_states` forces `velocity = 0` and negates `current`; leader feedback on `0x501`–`0x507`. No `calibrate_joint`, no CPV public APIs. |
 
@@ -34,6 +34,7 @@ All other public APIs in [nero_api.md](nero_api.md#nero-api-documentation) are a
 
 | API / group | Minimum SDK driver | Notes |
 | --- | --- | --- |
+| `get_ik_joint_angles` | `NeroFW.V112` | Firmware **≥ 1.12**; feedback after `move_p` / `move_l` / `move_c` |
 | `calibrate_joint` | `NeroFW.V111` | Not on `DEFAULT` |
 | CPV: `move_cpv_*`, `get_cpv_*`, `set_cpv_*` | `NeroFW.V112` | Joints 1–7 only |
 | `set_motion_mode('cpv')` | `NeroFW.V112` | `OPTIONS.MOTION_MODE.CPV` only on `V112`; not listed on `DEFAULT` / `V111` |
@@ -62,6 +63,7 @@ Legend: **✅** supported · **—** not in driver · **⚠️** supported with 
 | `move_j` / `move_js` | ✅ | ✅ | ✅ |
 | `move_p` / `move_l` / `move_c` | ✅ | ✅ | ✅ |
 | `get_joint_angles`, `get_driver_states`, limits / crash APIs, etc. | ✅ | ✅ | ✅ |
+| `get_ik_joint_angles` | — | — | ✅ |
 | `move_mit` | ✅ | ✅ | ✅ |
 | `calibrate_joint` | — | ✅ | ✅ |
 | CPV (`move_cpv_*`, `get/set_cpv_*`) | — | — | ✅ |
@@ -87,6 +89,7 @@ Legend: **✅** supported · **—** not in driver · **⚠️** supported with 
 
 ### Firmware ≥ 1.12 → use `NeroFW.V112`
 
+- `get_ik_joint_angles` after `move_p` / `move_l` / `move_c` (CAN `0x2AA`–`0x2AD`).
 - Use CPV and `set_motion_mode('cpv')`.
 - Leader angles from `0x155` / `0x156` / `0x157` / `0x170`.
 - `set_normal_mode()` does nothing (safe to call).
@@ -119,7 +122,7 @@ Legend: **✅** supported · **—** not in driver · **⚠️** supported with 
 
 | SDK 驱动 | 常量 | 机械臂固件 | 相对上一版的变化 |
 | --- | --- | --- | --- |
-| `v112` | `NeroFW.V112` | ≥ 1.12 | **新增：** 完整 CPV API（1–7 轴，CAN `0x181`–`0x187`）；`set_motion_mode('cpv')`。**变更：** `get_leader_joint_angles` 改为 `0x155` / `0x156` / `0x157` + `0x170` 成组帧。**兼容：** `set_normal_mode()` 在 SDK 侧为 no-op（固件已移除；调用不报错）。继承 `v111`（`calibrate_joint`、12-bit MIT、位姿修正）。 |
+| `v112` | `NeroFW.V112` | ≥ 1.12 | **新增：** `get_ik_joint_angles`（IK 反馈 CAN `0x2AA` / `0x2AB` / `0x2AC` / `0x2AD`；`move_p` / `move_l` / `move_c` 后可用）。**新增：** 完整 CPV API（1–7 轴，CAN `0x181`–`0x187`）；`set_motion_mode('cpv')`。**变更：** `get_leader_joint_angles` 改为 `0x155` / `0x156` / `0x157` + `0x170` 成组帧。**兼容：** `set_normal_mode()` 在 SDK 侧为 no-op（固件已移除；调用不报错）。继承 `v111`（`calibrate_joint`、12-bit MIT、位姿修正）。 |
 | `v111` | `NeroFW.V111` | 1.11 | **新增：** `calibrate_joint`。**变更：** `move_mit` 12-bit `t_ff`（全关节 ±16 N·m）；MIT 帧无 CRC；运动模式编码变更；`move_p` / `get_flange_pose` 无 1.10 位姿 workaround；`get_motor_states` 仅将 `velocity` 置 0（不再对 `current` 取反）。 |
 | `default` | `NeroFW.DEFAULT` | ≤ 1.10 | **基线：** 8-bit `t_ff`；分关节 MIT 力矩范围；`move_p` / `get_flange_pose` 1.10 位姿 workaround；`get_motor_states` 将 `velocity` 置 0 且 `current` 取反；主臂反馈 `0x501`–`0x507`。无 `calibrate_joint`、无 CPV 公开 API。 |
 
@@ -141,6 +144,7 @@ Legend: **✅** supported · **—** not in driver · **⚠️** supported with 
 
 | API / 分组 | 最低 SDK 驱动 | 说明 |
 | --- | --- | --- |
+| `get_ik_joint_angles` | `NeroFW.V112` | 固件 **≥ 1.12**；`move_p` / `move_l` / `move_c` 后有反馈 |
 | `calibrate_joint` | `NeroFW.V111` | `DEFAULT` 无 |
 | CPV：`move_cpv_*`、`get_cpv_*`、`set_cpv_*` | `NeroFW.V112` | 仅 1–7 轴 |
 | `set_motion_mode('cpv')` | `NeroFW.V112` | 仅 `V112` 的 `OPTIONS.MOTION_MODE` 含 `cpv`；`DEFAULT` / `V111` 不含 |
@@ -169,6 +173,7 @@ Legend: **✅** supported · **—** not in driver · **⚠️** supported with 
 | `move_j` / `move_js` | ✅ | ✅ | ✅ |
 | `move_p` / `move_l` / `move_c` | ✅ | ✅ | ✅ |
 | `get_joint_angles`、`get_driver_states`、限位 / 碰撞等 | ✅ | ✅ | ✅ |
+| `get_ik_joint_angles` | — | — | ✅ |
 | `move_mit` | ✅ | ✅ | ✅ |
 | `calibrate_joint` | — | ✅ | ✅ |
 | CPV（`move_cpv_*`、`get/set_cpv_*`） | — | — | ✅ |
@@ -194,6 +199,7 @@ Legend: **✅** supported · **—** not in driver · **⚠️** supported with 
 
 ### 固件 ≥ 1.12 → `NeroFW.V112`
 
+- `get_ik_joint_angles`：`move_p` / `move_l` / `move_c` 后可用（CAN `0x2AA`–`0x2AD`）。
 - 使用 CPV 及 `set_motion_mode('cpv')`。
 - 主臂关节角来自 `0x155` / `0x156` / `0x157` / `0x170`。
 - `set_normal_mode()` 无实际效果（可调用、不报错）。

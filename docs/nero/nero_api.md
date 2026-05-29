@@ -36,6 +36,7 @@
   - [Flange Pose to TCP Pose — get_flange2tcp_pose()](#flange-pose-to-tcp-pose--get_flange2tcp_pose)
   - [TCP Pose to Flange Pose — get_tcp2flange_pose()](#tcp-pose-to-flange-pose--get_tcp2flange_pose)
 - [Kinematics Related](#kinematics-related)
+  - [Get IK Joint Angles — get_ik_joint_angles()](#get-ik-joint-angles--get_ik_joint_angles)
   - [Forward Kinematics — fk()](#forward-kinematics--fk)
 - [SDK Config Related](#sdk-config-related)
   - [Set Auto Motion Mode Switching — set_auto_set_motion_mode_enabled()](#set-auto-motion-mode-switching--set_auto_set_motion_mode_enabled)
@@ -1041,6 +1042,49 @@ print("target_flange_pose =", target_flange_pose)
 ---
 
 ## Kinematics Related
+
+### Get IK Joint Angles — `get_ik_joint_angles()`
+
+> **Firmware requirement:** `NeroFW.V112+` (firmware **≥ 1.12**). See [Nero Firmware Reference](firmware_reference.md#apis-with-firmware-requirements).
+
+**Description:** Get the **inverse kinematics (IK) joint angles** feedback computed by the controller for the current Cartesian motion command.
+
+This feedback is published over CAN after the arm executes a Cartesian motion. It reflects the joint solution the controller selected for the target pose, which may differ from the measured joint angles from [get_joint_angles()](#get-joint-angles--get_joint_angles).
+
+> **Note:** Only available after calling [move_p()](#point-to-point-motion--move_p) / [move_l()](#linear-motion--move_l) / [move_c()](#arc-motion--move_c).
+
+**Function Definition:**
+
+```python
+get_ik_joint_angles(self) -> MessageAbstract[list[float]] | None
+```
+
+**Return Value:** `MessageAbstract[list[float]] | None`
+
+- Returns `None` if IK joint-angle feedback has not been received yet or the data fails validation.
+- `.msg` is a `list[float]` of length 7: `[j1, j2, j3, j4, j5, j6, j7]`, unit: **rad**.
+
+**Usage Example:**
+
+```python
+import time
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, NeroFW
+
+cfg = create_agx_arm_config(robot=ArmModel.NERO, firmeware_version=NeroFW.V112, channel="can0")
+robot = AgxArmFactory.create_arm(cfg)
+robot.connect()
+
+robot.move_p([-0.4, -0.0, 0.4, -1.5708, 0.0, -3.14159])
+
+while True:
+    ika = robot.get_ik_joint_angles()
+    if ika is not None:
+        print(ika.msg)
+        print(ika.hz, ika.timestamp)
+    time.sleep(0.005)
+```
+
+---
 
 ### Forward Kinematics — `fk()`
 
@@ -2306,6 +2350,7 @@ print("set_crash_protection_rating success =", success)
   - [法兰位姿转 TCP 位姿 — get_flange2tcp_pose()](#法兰位姿转-tcp-位姿--get_flange2tcp_pose)
   - [TCP 位姿转法兰位姿 — get_tcp2flange_pose()](#tcp-位姿转法兰位姿--get_tcp2flange_pose)
 - [运动学相关](#运动学相关)
+  - [读取 IK 关节角 — get_ik_joint_angles()](#读取-ik-关节角--get_ik_joint_angles)
   - [正运动学 — fk()](#正运动学--fk)
 - [SDK 配置相关](#sdk-配置相关)
   - [设置自动切换运动模式开关 — set_auto_set_motion_mode_enabled()](#设置自动切换运动模式开关--set_auto_set_motion_mode_enabled)
@@ -3309,6 +3354,49 @@ print("target_flange_pose =", target_flange_pose)
 ---
 
 ## 运动学相关
+
+### 读取 IK 关节角 — `get_ik_joint_angles()`
+
+> **固件要求：** `NeroFW.V112+`（固件 **≥ 1.12**）。详见 [Nero 固件参考](firmware_reference.md#有固件要求的-api)。
+
+**功能说明：** 获取控制器为当前笛卡尔运动指令计算的**逆解（IK）关节角**反馈。
+
+该反馈通过 CAN 上报，在机械臂执行笛卡尔运动后可用。它表示控制器为目标位姿选定的关节解，可能与 [get_joint_angles()](#读取关节角度--get_joint_angles) 读到的实测关节角不同。
+
+> **注意：** 仅在调用 [move_p()](#点到点运动--move_p) / [move_l()](#直线运动--move_l) / [move_c()](#圆弧运动--move_c) 之后可用。
+
+**函数定义：**
+
+```python
+get_ik_joint_angles(self) -> MessageAbstract[list[float]] | None
+```
+
+**返回值：** `MessageAbstract[list[float]] | None`
+
+- 若尚未收到 IK 关节角反馈或数据校验失败，返回 `None`。
+- `.msg` 为长度 7 的 `list[float]`：`[j1, j2, j3, j4, j5, j6, j7]`，单位：**rad**。
+
+**使用示例：**
+
+```python
+import time
+from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, NeroFW
+
+cfg = create_agx_arm_config(robot=ArmModel.NERO, firmeware_version=NeroFW.V112, channel="can0")
+robot = AgxArmFactory.create_arm(cfg)
+robot.connect()
+
+robot.move_p([-0.4, -0.0, 0.4, -1.5708, 0.0, -3.14159])
+
+while True:
+    ika = robot.get_ik_joint_angles()
+    if ika is not None:
+        print(ika.msg)
+        print(ika.hz, ika.timestamp)
+    time.sleep(0.005)
+```
+
+---
 
 ### 正运动学 — `fk()`
 

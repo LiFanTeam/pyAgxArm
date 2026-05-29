@@ -12,7 +12,7 @@ Read top to bottom: each row is **what changed vs the previous SDK driver**.
 
 | SDK driver | Constant | Arm firmware | Changes vs previous driver |
 | --- | --- | --- | --- |
-| `v188` | `PiperFW.V188` | ≥ S-V1.8-8 | **Changed:** `move_mit` 12-bit `t_ff` (±16 N·m all joints), **no CRC** on MIT frame. **Changed:** `get_arm_status` / `set_motion_mode` use V188 message types (`0x2A1` decode, `0x151` TX with `ArmMsgModeCtrlV188`); MIT motion mode code **0x06** (was **0x04** on older firmware). Inherits `v183` driver chain (CPV, limits, leader-follower, etc.). |
+| `v188` | `PiperFW.V188` | ≥ S-V1.8-8 | **New:** `get_ik_joint_angles` (IK feedback CAN `0x2AA` / `0x2AB` / `0x2AC`; after `move_p` only). **Changed:** `move_mit` 12-bit `t_ff` (±16 N·m all joints), **no CRC** on MIT frame. **Changed:** `get_arm_status` / `set_motion_mode` use V188 message types (`0x2A1` decode, `0x151` TX with `ArmMsgModeCtrlV188`); MIT motion mode code **0x06** (was **0x04** on older firmware). Inherits `v183` driver chain (CPV, limits, leader-follower, etc.). |
 | `v183` | `PiperFW.V183` | S-V1.8-3 ~ S-V1.8-7 | **Changed:** `move_mit` — all joints `t_ff` input **±8 N·m** (8-bit + CRC, same frame layout as `default`). No per-joint ±32 / ×0.25 scaling. Inherits `default` for all other APIs. |
 | `default` | `PiperFW.DEFAULT` | ≤ S-V1.8-2 | **Baseline:** `move_mit` 8-bit + CRC; joints **1–3** `t_ff` input ±32 N·m then **×0.25** before encode; joints **4–6** ±8 N·m. Full CPV stack (joints **1–6**, CAN **`0x181`–`0x186`**). `calibrate_joint`, leader-follower, Piper-only config APIs. |
 
@@ -51,6 +51,7 @@ All other public APIs in [piper_api.md](piper_api.md#piper-api-documentation) ar
 
 | API / group | Minimum SDK driver | Notes |
 | --- | --- | --- |
+| `get_ik_joint_angles` | `PiperFW.V188` | Firmware **≥ S-V1.8-8**; feedback after `move_p` only |
 | `move_mit` | All (behavior differs) | See [MIT parameters by version](#mit-move_mit-parameters-by-version) |
 | CPV (`move_cpv_*`, `get/set_cpv_*`) | All | Joints **1–6** only; inherited on `V183` / `V188` |
 | `set_motion_mode('cpv')` | All | On `V188`, `set_motion_mode` signature lists `p/j/l/c/mit/js` only; CPV mode still available via `OPTIONS` / string `'cpv'` from parent |
@@ -85,6 +86,7 @@ Legend: **✅** supported · **⚠️** supported with version-specific behavior
 | `calibrate_joint` | ✅ | ✅ | ✅ |
 | Leader-follower (`set_leader_mode`, `set_follower_mode`, `move_leader_*`, …) | ✅ | ✅ | ✅ |
 | `get_leader_joint_angles` | ✅ | ✅ | ✅ |
+| `get_ik_joint_angles` | — | — | ✅ |
 | Piper-only (`set_installation_pos`, `set_payload`, assistance rating, …) | ✅ | ✅ | ✅ |
 | `get_arm_status` / `set_motion_mode` | ✅ | ✅ | ⚠️ V188 message types & MIT mode code |
 
@@ -108,6 +110,7 @@ Legend: **✅** supported · **⚠️** supported with version-specific behavior
 ### Firmware ≥ S-V1.8-8 → use `PiperFW.V188`
 
 - 12-bit MIT, ±16 N·m, no CRC.
+- `get_ik_joint_angles` after `move_p` (CAN `0x2AA`–`0x2AC`).
 - Match `get_arm_status` / `set_motion_mode` to V188 protocol (MIT mode **0x06**).
 - For **`piper_x`**, account for joints 4–5 sign convention in SDK.
 
@@ -137,7 +140,7 @@ Legend: **✅** supported · **⚠️** supported with version-specific behavior
 
 | SDK 驱动 | 常量 | 机械臂固件 | 相对上一版的变化 |
 | --- | --- | --- | --- |
-| `v188` | `PiperFW.V188` | ≥ S-V1.8-8 | **变更：** `move_mit` 12-bit `t_ff`（全关节 ±16 N·m），MIT 帧**无 CRC**。**变更：** `get_arm_status` / `set_motion_mode` 使用 V188 报文（`0x2A1` 解码、`0x151` 下发 `ArmMsgModeCtrlV188`）；MIT 运动模式码 **0x06**（旧固件为 **0x04**）。继承 `v183` 驱动链（CPV、限位、主从等）。 |
+| `v188` | `PiperFW.V188` | ≥ S-V1.8-8 | **新增：** `get_ik_joint_angles`（IK 反馈 CAN `0x2AA` / `0x2AB` / `0x2AC`；仅 `move_p` 后可用）。**变更：** `move_mit` 12-bit `t_ff`（全关节 ±16 N·m），MIT 帧**无 CRC**。**变更：** `get_arm_status` / `set_motion_mode` 使用 V188 报文（`0x2A1` 解码、`0x151` 下发 `ArmMsgModeCtrlV188`）；MIT 运动模式码 **0x06**（旧固件为 **0x04**）。继承 `v183` 驱动链（CPV、限位、主从等）。 |
 | `v183` | `PiperFW.V183` | S-V1.8-3 ~ S-V1.8-7 | **变更：** `move_mit` 全关节 `t_ff` 输入 **±8 N·m**（8-bit + CRC，帧布局同 `default`）；取消 1–3 轴 ±32 / ×0.25 分轴逻辑。其余 API 继承 `default`。 |
 | `default` | `PiperFW.DEFAULT` | ≤ S-V1.8-2 | **基线：** `move_mit` 8-bit + CRC；**1–3 轴** `t_ff` 输入 ±32 N·m 再 **×0.25** 后编码；**4–6 轴** ±8 N·m。完整 CPV（**1–6 轴**，CAN **`0x181`–`0x186`**）。含 `calibrate_joint`、主从、Piper 专有配置 API。 |
 
@@ -176,6 +179,7 @@ Legend: **✅** supported · **⚠️** supported with version-specific behavior
 
 | API / 分组 | 最低 SDK 驱动 | 说明 |
 | --- | --- | --- |
+| `get_ik_joint_angles` | `PiperFW.V188` | 固件 **≥ S-V1.8-8**；仅 `move_p` 后有反馈 |
 | `move_mit` | 均有（行为不同） | 见 [MIT 分版本参数](#mitmove_mit分版本参数) |
 | CPV（`move_cpv_*`、`get/set_cpv_*`） | 均有 | 仅 **1–6 轴**；`V183` / `V188` 继承 |
 | `set_motion_mode('cpv')` | 均有 | `V188` 的 `set_motion_mode` 类型标注为 `p/j/l/c/mit/js`；仍可通过父类 `OPTIONS` / 字符串 `'cpv'` 使用 CPV |
@@ -210,6 +214,7 @@ Legend: **✅** supported · **⚠️** supported with version-specific behavior
 | `calibrate_joint` | ✅ | ✅ | ✅ |
 | 主从（`set_leader_mode`、`set_follower_mode`、`move_leader_*` 等） | ✅ | ✅ | ✅ |
 | `get_leader_joint_angles` | ✅ | ✅ | ✅ |
+| `get_ik_joint_angles` | — | — | ✅ |
 | Piper 专有（`set_installation_pos`、`set_payload`、助力系数等） | ✅ | ✅ | ✅ |
 | `get_arm_status` / `set_motion_mode` | ✅ | ✅ | ⚠️ V188 报文类型与 MIT 模式码 |
 
@@ -233,6 +238,7 @@ Legend: **✅** supported · **⚠️** supported with version-specific behavior
 ### 固件 ≥ S-V1.8-8 → `PiperFW.V188`
 
 - 12-bit MIT，全关节 ±16 N·m，无 CRC。
+- `get_ik_joint_angles`：`move_p` 后可用（CAN `0x2AA`–`0x2AC`）。
 - `get_arm_status` / `set_motion_mode` 需匹配 V188 协议（MIT 模式 **0x06**）。
 - **`piper_x`** 需注意 SDK 对 4、5 轴的符号约定。
 

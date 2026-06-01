@@ -1,3 +1,5 @@
+import warnings
+
 import pytest
 
 from pyAgxArm import AgxArmFactory, ArmModel, NeroFW, create_agx_arm_config
@@ -133,6 +135,24 @@ def test_nero_read_apis_with_virtual_feedback():
         assert ds is not None
         assert isinstance(es, bool)
         assert isinstance(es_all, list) and len(es_all) == 7
+        arm.disconnect()
+    finally:
+        device.stop()
+
+
+def test_nero_v112_set_normal_mode_emits_user_warning_once():
+    channel = new_virtual_channel("ci_nero_norm_warn")
+    device = NeroCanSlave(channel=channel)
+    device.start()
+    try:
+        arm = _make_nero_arm(NeroFW.V112, channel)
+        arm.connect()
+        with pytest.warns(UserWarning, match="set_normal_mode"):
+            arm.set_normal_mode()
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter("always", UserWarning)
+            arm.set_normal_mode()
+            assert not caught
         arm.disconnect()
     finally:
         device.stop()

@@ -1268,15 +1268,19 @@ print("joint limits enabled:", enabled)
 
 ## Leader-Follower Arm
 
-**Controller behavior:** On the arm side, **all control and configuration commands** — including motion commands (`move_*`), mode switching (e.g. `set_normal_mode()` / `set_leader_mode()` / `set_follower_mode()`), speed/motion settings, and other parameter-setting APIs — **do not take effect while the arm is disabled**. The SDK may still send frames, but the controller will not apply them until the arm is **enabled** (use `enable()`).
+**Controller behavior:** On the arm side, **all control and configuration commands** — including motion commands (`move_*`), mode switching (`set_leader_mode()` / `set_follower_mode()`; `set_normal_mode()` on firmware ≤ 1.11 only), speed/motion settings, and other parameter-setting APIs — **do not take effect while the arm is disabled**. The SDK may still send frames, but the controller will not apply them until the arm is **enabled** (use `enable()`).
 
-**`set_normal_mode()` and CAN push:** This call is used to return to normal single-arm control and **to enable CAN feedback push** on the controller. That behavior **only applies when the arm is enabled**. If the arm is disabled, `set_normal_mode()` will **not** successfully open or sustain CAN push on the hardware.
-
-> In **leader** or **follower** mode, `disable()` cannot be effectively executed (the controller may ignore it). To power off/disable the arm, first switch back to **normal mode** (e.g. `set_normal_mode()`), then call `disable()`.
+> In **leader** mode, `disable()` may be ignored. Leave leader mode before `disable()` (`set_normal_mode()` on ≤ 1.11; `set_follower_mode()` on ≥ 1.12 — see [`set_normal_mode()`](#set-normal-mode--set_normal_mode)).
 
 ### Set Normal Mode — `set_normal_mode()`
 
-**Description:** Set the robotic arm to normal control mode (single-arm mode). Commonly used to switch back from leader-follower/linked mode to normal mode; when the arm is **enabled**, this also enables CAN feedback push (see the section note above).
+**Description:** Set **normal** single-arm mode (firmware ≤ 1.11 only). On **`NeroFW.V112`**, normal mode is removed; the API is kept as a no-op for old scripts.
+
+| Firmware | `firmeware_version` | `set_normal_mode()` | Single-arm / CAN feedback |
+| --- | --- | --- | --- |
+| ≤ 1.10 | `NeroFW.DEFAULT` | Active | Normal mode; opens CAN push when **enabled** |
+| 1.11 | `NeroFW.V111` | Same as `DEFAULT` | Same |
+| ≥ 1.12 | `NeroFW.V112` | No-op (`UserWarning` once per instance) | Default **follower**; CAN push at **power-up**; use `set_leader_mode()` / `set_follower_mode()` only (Piper-aligned) |
 
 **Function Definition:**
 
@@ -1284,9 +1288,10 @@ print("joint limits enabled:", enabled)
 set_normal_mode(self) -> None
 ```
 
-**Usage Example:**
+**Usage Example (firmware ≤ 1.11):**
 
 ```python
+import time
 from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, NeroFW
 
 cfg = create_agx_arm_config(robot=ArmModel.NERO, firmeware_version=NeroFW.DEFAULT, channel="can0")
@@ -1388,7 +1393,7 @@ while True:
 
 ## Motion Control
 
-**Prerequisite:** **control and setting commands only take effect after the arm is enabled.** If the arm is disabled, motion and configuration APIs will not work on the controller side — call `enable()` first (often together with `set_normal_mode()` when switching back from leader/follower usage).
+**Prerequisite:** **control and setting commands only take effect after the arm is enabled.** If the arm is disabled, motion and configuration APIs will not work on the controller side — call `enable()` first.
 
 ### Enable — `enable()`
 
@@ -1428,7 +1433,7 @@ while not robot.enable():
 
 **Description:** Power off and disable the robotic arm.
 
-> In **leader** or **follower** mode, `disable()` may be ignored and cannot reliably disable the arm. Switch back to **normal mode** first (see `set_normal_mode()`), then call `disable()`.
+> In **leader** mode, `disable()` may be ignored. Leave leader mode first (see [`set_normal_mode()`](#set-normal-mode--set_normal_mode)), then call `disable()`.
 
 > **Warning:** When this command is executed, if the robotic arm joints are in a raised position, they will **drop immediately**. Make sure the robotic arm is in a safe state before using this.
 
@@ -3580,15 +3585,19 @@ print("关节软件限位:", enabled)
 
 ## Leader-Follower 臂
 
-**主控侧行为说明：** 机械臂处于 **失能** 状态时，**所有控制类与参数设置类指令**（包括各类运动指令 `move_*`、模式切换如 `set_normal_mode()` / `set_leader_mode()` / `set_follower_mode()`、速度/运动模式等设定、以及其它 `set_*` 配置接口）在 **控制器上均不会生效**。SDK 侧仍可能下发报文，但主控只有在 **使能** 后才会真正执行。
+**主控侧行为说明：** 机械臂处于 **失能** 状态时，**所有控制类与参数设置类指令**（包括运动 `move_*`、模式切换 `set_leader_mode()` / `set_follower_mode()`；固件 ≤ 1.11 另有 `set_normal_mode()` 等）在 **控制器上均不会生效**。请先 `enable()`。
 
-**`set_normal_mode()` 与 CAN 推送：** 该接口用于切回普通单臂控制，并在 **使能状态下** 由主控 **打开 CAN 状态反馈推送**。若机械臂 **未使能**，则 **无法** 在主控侧成功打开或维持 CAN 推送。
-
-> 在 **主臂（leader）** 或 **从臂（follower）** 模式下，`disable()` 可能无法有效执行（控制器可能会忽略该指令）。若需要给机械臂“失能/断电”，请先切回 **正常模式**（例如 `set_normal_mode()`），再调用 `disable()`。
+> **主臂（leader）** 模式下 `disable()` 可能被忽略。失能前请先退出主臂模式（≤ 1.11 用 `set_normal_mode()`；≥ 1.12 用 `set_follower_mode()`，见 [`set_normal_mode()`](#设定正常模式--set_normal_mode) 表格）。
 
 ### 设定正常模式 — `set_normal_mode()`
 
-**功能说明：** 将机械臂设置为正常控制模式（单臂模式）。常用于从 Leader-Follower/联动模式切回普通模式；在机械臂 **已使能** 的前提下，会配合主控打开 CAN 反馈推送（详见本节开头的说明）。
+**功能说明：** 设定 **正常（normal）** 单臂模式（仅固件 ≤ 1.11）。**`NeroFW.V112`** 已取消正常模式，接口保留为 no-op 以兼容旧脚本。
+
+| 固件 | `firmeware_version` | `set_normal_mode()` | 单臂 / CAN 反馈 |
+| --- | --- | --- | --- |
+| ≤ 1.10 | `NeroFW.DEFAULT` | 有效 | 正常模式；**使能后** 打开 CAN 推送 |
+| 1.11 | `NeroFW.V111` | 与 `DEFAULT` 相同 | 相同 |
+| ≥ 1.12 | `NeroFW.V112` | 无效果（每实例 `UserWarning` 一次） | 默认 **从臂**；**上电即** CAN 推送；仅用 `set_leader_mode()` / `set_follower_mode()`（与 Piper 一致） |
 
 **函数定义：**
 
@@ -3596,9 +3605,10 @@ print("关节软件限位:", enabled)
 set_normal_mode(self) -> None
 ```
 
-**使用示例：**
+**使用示例（固件 ≤ 1.11）：**
 
 ```python
+import time
 from pyAgxArm import create_agx_arm_config, AgxArmFactory, ArmModel, NeroFW
 
 cfg = create_agx_arm_config(robot=ArmModel.NERO, firmeware_version=NeroFW.DEFAULT, channel="can0")
@@ -3700,7 +3710,7 @@ while True:
 
 ## 运动控制
 
-**前置条件：** **控制指令与参数设置指令只有在机械臂使能后才会在主控侧生效。** 失能时运动与配置类 API 无效，请先调用 `enable()`；从联动/示教等场景切回单臂时，常与 `set_normal_mode()` 配合使用。
+**前置条件：** **控制与参数设置指令仅在使能后生效。** 请先调用 `enable()`。
 
 ### 使能 — `enable()`
 
@@ -3740,7 +3750,7 @@ while not robot.enable():
 
 **功能说明：** 将机械臂失电。
 
-> 在 **主臂/从臂模式** 下，`disable()` 可能会被忽略，无法可靠完成失能。建议先切回 **正常模式**（见 `set_normal_mode()`），再调用 `disable()`。
+> **主臂（leader）** 模式下 `disable()` 可能被忽略。请先退出主臂模式（见 [`set_normal_mode()`](#设定正常模式--set_normal_mode) 表格），再 `disable()`。
 
 > **⚠️ 安全警告：** 执行该指令时，如果机械臂关节处于抬起状态，会 **立刻掉落**。请确保机械臂处于安全状态后再使用。
 

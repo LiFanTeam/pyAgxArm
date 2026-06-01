@@ -33,7 +33,7 @@
 
 | SDK 驱动 | 固件 | 驱动层变化（摘要） | 虚拟 CAN |
 |----------|------|-------------------|----------|
-| `NeroFW.V112` | ≥ 1.12 | +CPV 1–7；leader `0x155`–`0x170`；`set_normal_mode` no-op | CPV、leader ✅ @ V112；`demo_style` 未覆盖 |
+| `NeroFW.V112` | ≥ 1.12 | +CPV；leader `0x155`–`0x170`；主从同 Piper、上电 CAN 推送 | CPV、leader、warn ✅ @ V112 |
 | `NeroFW.V111` | 1.11 | +`calibrate_joint`；12-bit MIT；位姿无 1.10 workaround | `calibrate_joint` ✅；`demo_style` 🔶 |
 | `NeroFW.DEFAULT` | ≤ 1.10 | 基线（8-bit MIT、位姿 workaround 等） | `demo_style` 🔶；`read`/`proprietary`/运动扩展 ✅ |
 

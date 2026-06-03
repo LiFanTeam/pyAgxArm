@@ -13,7 +13,7 @@ _SUPPORTED_PLATFORMS = {"Linux", "Windows", "Darwin"}
 
 def create_can_comm_config(
     *,
-    channel: str = "can0",
+    channel: str = "can_nero",
     interface: str = "socketcan",
     bitrate: int = 1_000_000,
     enable_check_can: bool = True,

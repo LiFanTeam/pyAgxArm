@@ -77,12 +77,12 @@ See:
 Assume default channel values in this quick-start example:
 
 - Windows: `interface="agx_cando"`, `channel="0"`
-- Linux: `interface="socketcan"`, `channel="can0"`
+- Linux: `interface="socketcan"`, `channel="can_nero"`
 - macOS: `interface="slcan"`, `channel="/dev/ttyACM0"`
 
 Prerequisites before running:
 
-- Linux: activate CAN first (for example: `sudo ip link set can0 up type can bitrate 1000000`)
+- Linux: activate CAN first (for example: `sudo ip link set can_nero up type can bitrate 1000000`)
 - Linux: you can also use our shell scripts in [CAN module manual - Activate a Single CAN Module](./docs/can_user.md#2-activate-a-single-can-module)
 - macOS: grant serial permission first (`sudo chmod 777 /dev/ttyACM0`)
 
@@ -98,7 +98,7 @@ if platform_system == "Windows":
     channel = "0"
 elif platform_system == "Linux":
     interface = "socketcan"
-    channel = "can0"
+    channel = "can_nero"
 elif platform_system == "Darwin":
     interface = "slcan"
     channel = "/dev/ttyACM0"
@@ -216,12 +216,12 @@ Ubuntu 24.04 可参考：
 本节快速示例按“默认通道”假设：
 
 - Windows：`interface="agx_cando"`，`channel="0"`
-- Linux：`interface="socketcan"`，`channel="can0"`
+- Linux：`interface="socketcan"`，`channel="can_nero"`
 - macOS：`interface="slcan"`，`channel="/dev/ttyACM0"`
 
 运行前前置条件：
 
-- Linux：先激活 CAN（例如：`sudo ip link set can0 up type can bitrate 1000000`）
+- Linux：先激活 CAN（例如：`sudo ip link set can_nero up type can bitrate 1000000`）
 - Linux：也可使用我们提供的脚本，见 [CAN 模块手册 - 激活单个 CAN 模块](./docs/can_user.md#2-激活单个-can-模块)
 - macOS：先给串口权限（`sudo chmod 777 /dev/ttyACM0`）
 
@@ -237,7 +237,7 @@ if platform_system == "Windows":
     channel = "0"
 elif platform_system == "Linux":
     interface = "socketcan"
-    channel = "can0"
+    channel = "can_nero"
 elif platform_system == "Darwin":
     interface = "slcan"
     channel = "/dev/ttyACM0"

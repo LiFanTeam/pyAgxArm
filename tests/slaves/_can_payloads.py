@@ -35,7 +35,14 @@ def pack_feedback_high_spd(
     current_a: float = 0.0,
     position_rad: float = 0.0,
 ) -> bytes:
-    return _from_hex(_HEX_251_HIGH_SPD)
+    velocity_raw = int(round(velocity_rad_s * 1e3))
+    current_raw = int(round(current_a * 1e3))
+    position_raw = int(round(position_rad * 1e3))
+    return (
+        velocity_raw.to_bytes(2, "big", signed=True)
+        + current_raw.to_bytes(2, "big", signed=True)
+        + position_raw.to_bytes(4, "big", signed=True)
+    )
 
 
 def pack_feedback_low_spd(

@@ -184,8 +184,8 @@ class Driver(DefaultDriver):
         ] = getattr(self._parser, f"motor_state_{joint_index}", None)
         if motor_state is not None:
             motor_state.hz = self._ctx.fps.get_fps(motor_state.msg_type)
-            # TODO: remove this after the bug is fixed
-            motor_state.msg.velocity = 0.0
+            if joint_index != 6:
+                motor_state.msg.velocity *= -1
             return motor_state
         else:
             return None

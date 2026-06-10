@@ -109,12 +109,13 @@ def test_nero_driver_set_normal_mode_and_extended_motion_l2():
         device.stop()
 
 
-def test_nero_read_apis_with_virtual_feedback():
+@pytest.mark.parametrize("fw", [NeroFW.DEFAULT, NeroFW.V111, NeroFW.V112])
+def test_nero_read_apis_with_virtual_feedback(fw):
     channel = new_virtual_channel("ci_nero_read")
     device = NeroCanSlave(channel=channel)
     device.start()
     try:
-        arm = _make_nero_arm(NeroFW.DEFAULT, channel)
+        arm = _make_nero_arm(fw, channel)
         arm.connect()
         # 主动反馈类：直接注入测试帧，再校验读取类 API。
         device.emit_proactive_feedback_once()
@@ -124,6 +125,7 @@ def test_nero_read_apis_with_virtual_feedback():
         fp = arm.get_flange_pose()
         st = arm.get_arm_status()
         ms = arm.get_motor_states(1)
+        ms6 = arm.get_motor_states(6)
         ds = arm.get_driver_states(1)
         es = arm.get_joint_enable_status(1)
         es_all = arm.get_joints_enable_status_list()
@@ -132,6 +134,9 @@ def test_nero_read_apis_with_virtual_feedback():
         assert fp is not None and len(fp.msg) == 6
         assert st is not None
         assert ms is not None
+        assert ms.msg.velocity == pytest.approx(0.01)
+        assert ms6 is not None
+        assert ms6.msg.velocity == pytest.approx(0.06)
         assert ds is not None
         assert isinstance(es, bool)
         assert isinstance(es_all, list) and len(es_all) == 7

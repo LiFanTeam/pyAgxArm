@@ -93,18 +93,22 @@ class NeroCanSlave:
     def _high_joint_messages(self) -> List[can.Message]:
         frames: List[can.Message] = []
         for i in range(6):
+            joint_index = i + 1
+            velocity = 0.01 * joint_index
+            if joint_index != 6:
+                velocity *= -1
             frames.append(
                 can.Message(
                     is_extended_id=False,
                     arbitration_id=0x251 + i,
-                    data=pl.pack_feedback_high_spd(),
+                    data=pl.pack_feedback_high_spd(velocity_rad_s=velocity),
                 )
             )
         frames.append(
             can.Message(
                 is_extended_id=False,
                 arbitration_id=0x257,
-                data=pl.pack_feedback_high_spd(),
+                data=pl.pack_feedback_high_spd(velocity_rad_s=-0.07),
             )
         )
         return frames
